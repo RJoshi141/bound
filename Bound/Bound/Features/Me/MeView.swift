@@ -3,7 +3,6 @@ import SwiftUI
 import SwiftData
 
 struct MeView: View {
-    @Environment(TearCoordinator.self) private var tear
     @AppStorage(AppKeys.memberName) private var memberName = ""
     @AppStorage(AppKeys.clubName) private var clubName = "Tuesday Night Readers"
     @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = true
@@ -119,7 +118,7 @@ struct MeView: View {
                 .frame(minHeight: 52)
             row("Import from Goodreads", systemImage: "square.and.arrow.down")
             Button(role: .destructive) {
-                tear.run { hasJoined = false }
+                withAnimation(.easeInOut(duration: 0.3)) { hasJoined = false }
             } label: {
                 HStack {
                     Text("Leave club (restart onboarding)")
@@ -149,6 +148,5 @@ struct MeView: View {
 
 #Preview {
     MeView()
-        .environment(TearCoordinator())
         .modelContainer(SampleData.previewContainer)
 }

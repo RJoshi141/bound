@@ -74,7 +74,5 @@ extension Color {
 }
 
 extension Theme.Colors {
-    static let tearSheet = Color(hex: "233A2B")   // the tear sheet
-    static let tearMark  = Color(hex: "2E4A38")   // wordmark printed on it
     static let fibre     = Color(hex: "EFE6D3")   // torn paper fibres
 }

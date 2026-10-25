@@ -6,20 +6,10 @@ enum AppTab: Hashable {
 }
 
 struct MainTabsView: View {
-    @Environment(TearCoordinator.self) private var tear
     @State private var tab: AppTab = .shelves
 
     var body: some View {
-        // every tab switch goes through the tear
-        let selection = Binding<AppTab>(
-            get: { tab },
-            set: { newTab in
-                guard newTab != tab else { return }
-                tear.run { tab = newTab }
-            }
-        )
-
-        TabView(selection: selection) {
+        TabView(selection: $tab) {
             Tab("Shelves", systemImage: "books.vertical", value: AppTab.shelves) {
                 ShelvesView()
             }

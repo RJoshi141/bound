@@ -8,7 +8,6 @@ struct PlanMeetupView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    @Environment(TearCoordinator.self) private var tear
     @Query(sort: \PickOption.votes, order: .reverse) private var picks: [PickOption]
     @AppStorage(AppKeys.memberName) private var memberName = ""
 
@@ -31,7 +30,7 @@ struct PlanMeetupView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                BackButton(title: "Meetup") { tear.run { dismiss() } }
+                BackButton(title: "Meetup") { dismiss() }
                 Spacer()
             }
             .padding(.horizontal, 12)
@@ -174,7 +173,7 @@ struct PlanMeetupView: View {
             goingCount: 0
         )
         context.insert(meetup)
-        tear.run { dismiss() }
+        dismiss()
     }
 
     /// Next month's first Thursday and Saturday at sensible times.

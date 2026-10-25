@@ -24,7 +24,6 @@ enum ShelfFilter: String, CaseIterable, Identifiable {
 }
 
 struct ShelvesView: View {
-    @Environment(TearCoordinator.self) private var tear
     @AppStorage(AppKeys.clubName) private var clubName = "Tuesday Night Readers"
     @Query(sort: \Book.addedAt) private var books: [Book]
 
@@ -92,15 +91,12 @@ struct ShelvesView: View {
     }
 
     private func open(_ book: Book) {
-        tear.run {
-            selected = nil
-            path.append(book)
-        }
+        selected = nil
+        path.append(book)
     }
 }
 
 #Preview {
     ShelvesView()
-        .environment(TearCoordinator())
         .modelContainer(SampleData.previewContainer)
 }

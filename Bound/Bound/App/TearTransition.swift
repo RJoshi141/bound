@@ -1,99 +1,75 @@
 import Foundation
 import SwiftUI
-import UIKit
-import Observation
 
-/// Drives the paper-tear between screens: drop the sheet, swap underneath, tear it back up.
-@Observable
-final class TearCoordinator {
-    var isCovered = false
-    private(set) var isRunning = false
+// The page tear: the outgoing screen rips along its bottom edge and lifts away
+// upward, revealing the new screen underneath. One-way, no sheet coming back.
+// Only used when leaving the start screen.
 
-    private let curve = Animation.timingCurve(0.65, 0, 0.35, 1, duration: 0.55)
+extension Animation {
+    static let tear = Animation.timingCurve(0.65, 0, 0.35, 1, duration: 0.9)
+}
 
-    func run(_ change: @escaping () -> Void) {
-        guard !isRunning else { return }
+extension AnyTransition {
+    /// Use on the OUTGOING view, and give it a higher zIndex so it stays on top while it lifts.
+    static var tearAway: AnyTransition {
+        .asymmetric(
+            insertion: .identity,
+            removal: .modifier(active: TearAway(progress: 1), identity: TearAway(progress: 0))
+        )
+    }
+}
 
-        // Reduce Motion: quick crossfade instead of the sheet.
-        if UIAccessibility.isReduceMotionEnabled {
-            withAnimation(.easeInOut(duration: 0.15)) { change() }
-            return
-        }
+struct TearAway: ViewModifier {
+    var progress: Double            // 0 = resting, 1 = fully lifted off screen
 
-        isRunning = true
-        withAnimation(curve) { isCovered = true }
+    private let edgeDepth: CGFloat = 44
 
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(580))
-
-            // swap with animations off so the change happens hidden under the sheet
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) { change() }
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-
-            try? await Task.sleep(for: .milliseconds(80))
-            withAnimation(curve) { isCovered = false }
-            try? await Task.sleep(for: .milliseconds(600))
-            isRunning = false
+    func body(content: Content) -> some View {
+        let lift = progress          // local copy for the nonisolated visualEffect closure
+        if progress == 0 {
+            content
+        } else {
+            content
+                // rip the bottom edge of the page...
+                .mask(TornPage(edgeDepth: edgeDepth))
+                // ...with paper fibres showing just below the rip
+                .background(TornPage(edgeDepth: edgeDepth, fiber: true).fill(Theme.Colors.fibre))
+                .shadow(color: .black.opacity(0.25), radius: 16, y: 10)
+                // then lift the whole page up and out
+                .visualEffect { view, proxy in
+                    view.offset(y: -lift * (proxy.size.height + 80))
+                }
         }
     }
 }
 
-/// The forest-green sheet with a ripped, fibrous bottom edge.
-struct TearOverlay: View {
-    @Environment(TearCoordinator.self) private var tear
-
-    var body: some View {
-        GeometryReader { geo in
-            let height = geo.size.height
-            VStack(spacing: 0) {
-                ZStack {
-                    Theme.Colors.tearSheet
-                    Text("Bound")
-                        .font(Theme.Fonts.masthead(88))
-                        .foregroundStyle(Theme.Colors.tearMark)
-                }
-                .frame(height: height)
-
-                ZStack(alignment: .top) {
-                    TornEdge(fiber: true).fill(Theme.Colors.fibre)
-                    TornEdge(fiber: false).fill(Theme.Colors.tearSheet)
-                }
-                .frame(height: 46)
-            }
-            .offset(y: tear.isCovered ? 0 : -(height + 60))
-        }
-        .ignoresSafeArea()
-        .allowsHitTesting(tear.isRunning)
-        .accessibilityHidden(true)
-    }
-}
-
-/// Jagged torn-paper edge. Same seed for both layers so the fibre band hugs the edge.
-struct TornEdge: Shape {
+/// A full page whose bottom edge is torn. `fiber` draws the slightly deeper fibre layer.
+struct TornPage: Shape {
+    var edgeDepth: CGFloat = 44
     var fiber = false
 
     nonisolated func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.move(to: .zero)
-        path.addLine(to: CGPoint(x: rect.width, y: 0))
+        let top = rect.maxY - edgeDepth
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
 
+        // seeded noise so both layers rip along the same line
         var state: UInt64 = 7
         func random() -> Double {
             state = state &* 6364136223846793005 &+ 1442695040888963407
             return Double((state >> 33) % 1000) / 1000
         }
 
-        var x = rect.width
-        while x > 0 {
+        var x = rect.maxX
+        while x > rect.minX {
             var y = 0.38 + 0.16 * sin(x / 41) + 0.09 * sin(x / 13 + 1) + random() * 0.14
-            let fibreDepth = 0.08 + random() * 0.2      // always drawn so both layers stay in sync
+            let fibreDepth = 0.08 + random() * 0.2
             if fiber { y += fibreDepth }
-            path.addLine(to: CGPoint(x: x, y: min(y, 1) * rect.height))
+            path.addLine(to: CGPoint(x: x, y: top + min(y, 1) * edgeDepth))
             x -= 6
         }
-        path.addLine(to: CGPoint(x: 0, y: (fiber ? 0.6 : 0.42) * rect.height))
+        path.addLine(to: CGPoint(x: rect.minX, y: top + (fiber ? 0.6 : 0.42) * edgeDepth))
         path.closeSubpath()
         return path
     }

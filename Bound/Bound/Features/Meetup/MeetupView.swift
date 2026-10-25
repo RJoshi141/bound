@@ -6,7 +6,6 @@ import CoreLocation
 import UIKit
 
 struct MeetupView: View {
-    @Environment(TearCoordinator.self) private var tear
     @Query(sort: \Meetup.number, order: .reverse) private var meetups: [Meetup]
     @Query(sort: \LedgerEntry.month, order: .reverse) private var ledger: [LedgerEntry]
     @Query(sort: \PickOption.votes, order: .reverse) private var picks: [PickOption]
@@ -44,7 +43,7 @@ struct MeetupView: View {
                     }
                     Spacer()
                     Button {
-                        tear.run { showPlan = true }
+                        showPlan = true
                     } label: {
                         Label("Plan next", systemImage: "square.and.pencil")
                             .font(Theme.Fonts.body(13, weight: .semibold))
@@ -322,6 +321,5 @@ struct Perforation: View {
 
 #Preview {
     MeetupView()
-        .environment(TearCoordinator())
         .modelContainer(SampleData.previewContainer)
 }

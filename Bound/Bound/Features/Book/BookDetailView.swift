@@ -7,7 +7,6 @@ struct BookDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    @Environment(TearCoordinator.self) private var tear
     @Query private var members: [ClubMember]
 
     enum Pane: String, CaseIterable { case notes = "Club notes", about = "About" }
@@ -73,7 +72,7 @@ struct BookDetailView: View {
 
     private var topBar: some View {
         HStack(spacing: 8) {
-            BackButton(title: "Shelves") { tear.run { dismiss() } }
+            BackButton(title: "Shelves") { dismiss() }
             Spacer()
             CircleIconButton(
                 systemName: book.isFavourite ? "heart.fill" : "heart",
@@ -87,7 +86,7 @@ struct BookDetailView: View {
                 Button("Remove from my shelves", role: .destructive) {
                     // pop first, then delete, so the screen never renders a deleted model
                     let doomed = book
-                    tear.run { dismiss() }
+                    dismiss()
                     Task {
                         try? await Task.sleep(for: .seconds(1))
                         context.delete(doomed)
@@ -298,6 +297,5 @@ struct ProgressBar: View {
     let container = SampleData.previewContainer
     let book = try! container.mainContext.fetch(FetchDescriptor<Book>()).first { $0.title == "Middlemarch" }!
     NavigationStack { BookDetailView(book: book) }
-        .environment(TearCoordinator())
         .modelContainer(container)
 }

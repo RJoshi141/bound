@@ -6,18 +6,20 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) private var context
     @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = false
-    @State private var tear = TearCoordinator()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
             if hasJoined {
                 MainTabsView()
+                    .zIndex(0)
             } else {
+                // the start flow tears away to reveal the app underneath
                 OnboardingView()
+                    .zIndex(1)
+                    .transition(reduceMotion ? .opacity : .tearAway)
             }
-            TearOverlay()
         }
-        .environment(tear)
         .preferredColorScheme(.light)       // paper look is light-only for now
         .task { SampleData.seedIfNeeded(context) }
     }

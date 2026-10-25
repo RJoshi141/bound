@@ -3,7 +3,6 @@ import SwiftUI
 import SwiftData
 
 struct ClubView: View {
-    @Environment(TearCoordinator.self) private var tear
     @Environment(\.modelContext) private var context
     @AppStorage(AppKeys.clubName) private var clubName = "Tuesday Night Readers"
     @AppStorage(AppKeys.memberName) private var memberName = ""
@@ -21,7 +20,7 @@ struct ClubView: View {
                     header
                     passedToYou
                     LedgerCard(entries: Array(ledger.prefix(5)), total: ledger.count) {
-                        tear.run { showLedger = true }
+                        showLedger = true
                     }
                     membersList
                 }
@@ -214,7 +213,6 @@ struct LedgerCard: View {
 
 struct LedgerView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(TearCoordinator.self) private var tear
     @Query(sort: \LedgerEntry.month, order: .reverse) private var ledger: [LedgerEntry]
 
     private var average: Double {
@@ -225,7 +223,7 @@ struct LedgerView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                BackButton(title: "Club") { tear.run { dismiss() } }
+                BackButton(title: "Club") { dismiss() }
                 Spacer()
             }
             .padding(.horizontal, 12)
@@ -265,6 +263,5 @@ struct LedgerView: View {
 
 #Preview {
     ClubView()
-        .environment(TearCoordinator())
         .modelContainer(SampleData.previewContainer)
 }

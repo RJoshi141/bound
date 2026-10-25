@@ -7,7 +7,6 @@ struct JoinClubView: View {
     let mode: Mode
     let onBack: () -> Void
 
-    @Environment(TearCoordinator.self) private var tear
     @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = false
     @AppStorage(AppKeys.memberName) private var memberName = ""
     @AppStorage(AppKeys.clubName) private var clubName = "Tuesday Night Readers"
@@ -168,6 +167,6 @@ struct JoinClubView: View {
             clubName = newClubName.trimmingCharacters(in: .whitespaces)
             isHost = true
         }
-        tear.run { hasJoined = true }
+        withAnimation(.tear) { hasJoined = true }
     }
 }
