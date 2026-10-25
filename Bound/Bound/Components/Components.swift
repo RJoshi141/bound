@@ -148,6 +148,7 @@ struct Chip: View {
 /// Header back button that runs the tear on the way out.
 struct BackButton: View {
     let title: String
+    var color: Color = Theme.Colors.ink
     let action: () -> Void
 
     var body: some View {
@@ -156,7 +157,7 @@ struct BackButton: View {
                 Image(systemName: "chevron.left").font(.system(size: 17, weight: .semibold))
                 Text(title).font(Theme.Fonts.letterpress(18)).tracking(1)
             }
-            .foregroundStyle(Theme.Colors.ink)
+            .foregroundStyle(color)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
         }

@@ -29,27 +29,23 @@ struct JoinClubView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                BackButton(title: "Back", action: onBack)
+                BackButton(title: "Back", color: Theme.Colors.card, action: onBack)
                 Spacer()
-                MonoLabel(mode == .join ? "Step 1 of 2" : "New club")
+                MonoLabel(mode == .join ? "Step 1 of 2" : "New club", color: Theme.Colors.card.opacity(0.75))
             }
             .padding(.horizontal, 12)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    FramedPainting(name: "JoinPainting")
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 4)
-
                     VStack(alignment: .leading, spacing: 8) {
                         Text(mode == .join ? "Join your club" : "Start a club")
                             .font(Theme.Fonts.display(44))
-                            .foregroundStyle(Theme.Colors.ink)
+                            .foregroundStyle(Theme.Colors.card)
                         Text(mode == .join
                              ? "Ask your host for the 6-character invite code."
                              : "Name your club. You'll get a code to share with members.")
                             .font(Theme.Fonts.body(15))
-                            .foregroundStyle(Theme.Colors.inkMuted)
+                            .foregroundStyle(Theme.Colors.card.opacity(0.8))
                     }
 
                     if mode == .join { codeField } else { clubNameField }
@@ -63,6 +59,7 @@ struct JoinClubView: View {
                         Text("Your first name").font(Theme.Fonts.body(13, weight: .semibold))
                         TextField("", text: $name, prompt: Text("Ana").foregroundStyle(Theme.Colors.inkMuted))
                             .font(Theme.Fonts.body(17))
+                            .foregroundStyle(Theme.Colors.ink)
                             .textContentType(.givenName)
                             .padding(.horizontal, 16)
                             .frame(height: 52)
@@ -88,8 +85,8 @@ struct JoinClubView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
         }
-        .foregroundStyle(Theme.Colors.ink)
-        .paperBackground()
+        .foregroundStyle(Theme.Colors.card)
+        .background { backdrop }
         .onAppear { if mode == .join { codeFocused = true } }
     }
 
@@ -115,6 +112,7 @@ struct JoinClubView: View {
                         let isCurrent = index == chars.count && codeFocused
                         Text(index < chars.count ? String(chars[index]) : "")
                             .font(Theme.Fonts.mono(24, medium: true))
+                            .foregroundStyle(Theme.Colors.ink)
                             .frame(maxWidth: .infinity, minHeight: 60)
                             .background(Theme.Colors.card)
                             .overlay(
@@ -136,11 +134,12 @@ struct JoinClubView: View {
             Text("Club name").font(Theme.Fonts.body(13, weight: .semibold))
             TextField("", text: $newClubName, prompt: Text("Tuesday Night Readers").foregroundStyle(Theme.Colors.inkMuted))
                 .font(Theme.Fonts.body(17))
+                .foregroundStyle(Theme.Colors.ink)
                 .padding(.horizontal, 16)
                 .frame(height: 52)
                 .background(Theme.Colors.card)
                 .overlay(Rectangle().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
-            MonoLabel("Your invite code: BND7Q2")
+            MonoLabel("Your invite code: BND7Q2", color: Theme.Colors.card.opacity(0.8))
         }
     }
 
@@ -162,7 +161,29 @@ struct JoinClubView: View {
                 .foregroundStyle(Theme.Colors.forest)
         }
         .padding(16)
+        .foregroundStyle(Theme.Colors.ink)
         .paperCard(radius: 0)
+    }
+
+    // Painting of stacked books on black: fitted to the width at the bottom,
+    // with the canvas colour filling the rest so there's no seam.
+    private var backdrop: some View {
+        let canvas = Color(hex: "101012")
+        return ZStack(alignment: .bottom) {
+            canvas
+            Image("JoinPainting")
+                .resizable()
+                .scaledToFit()
+                .overlay(alignment: .top) {
+                    LinearGradient(colors: [canvas, canvas.opacity(0)], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 60)
+                }
+                .opacity(0.85)
+            // keep the form readable over the books
+            LinearGradient(colors: [.black.opacity(0), .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
+        }
+        .ignoresSafeArea()
+        .accessibilityHidden(true)
     }
 
     private func finish() {

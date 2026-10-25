@@ -16,8 +16,10 @@ struct WelcomeView: View {
                     .foregroundStyle(Theme.Colors.card)
                     .shadow(color: .black.opacity(0.35), radius: 12, y: 4)
                 Text("Your book club, all in one place.\nTrack what you read, share notes, plan the next meetup.")
-                    .font(Theme.Fonts.body(16))
-                    .foregroundStyle(Theme.Colors.card.opacity(0.88))
+                    .font(Theme.Fonts.body(17, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.card)
+                    .lineSpacing(3)
+                    .shadow(color: .black.opacity(0.8), radius: 6, y: 1)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 36)
             }
@@ -52,8 +54,9 @@ struct WelcomeView: View {
             .overlay {
                 LinearGradient(
                     stops: [
-                        .init(color: .black.opacity(0.55), location: 0),
-                        .init(color: .black.opacity(0.0), location: 0.35),
+                        .init(color: .black.opacity(0.75), location: 0),
+                        .init(color: .black.opacity(0.45), location: 0.28),
+                        .init(color: .black.opacity(0.0), location: 0.45),
                         .init(color: .black.opacity(0.0), location: 0.6),
                         .init(color: .black.opacity(0.7), location: 1),
                     ],
