@@ -73,19 +73,21 @@ struct MeView: View {
     private var favouritesShelf: some View {
         VStack(alignment: .leading, spacing: 6) {
             SectionTitle(title: "★ Favourites", trailing: "\(favourites.count) books")
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .bottom, spacing: 3) {
-                    ForEach(favourites) { book in
-                        SpineView(book: book, isLifted: selected?.id == book.id) {
-                            selected = (selected?.id == book.id) ? nil : book
+            VStack(spacing: 0) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .bottom, spacing: 3) {
+                        ForEach(favourites) { book in
+                            SpineView(book: book, isLifted: selected?.id == book.id) {
+                                selected = (selected?.id == book.id) ? nil : book
+                            }
                         }
                     }
+                    .padding(.horizontal, 12)
+                    .frame(height: 156, alignment: .bottom)
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 28)
+                .frame(height: 156)
+                OakPlank()
             }
-            .frame(height: 156, alignment: .bottom)
-            OakPlank()
             if let selected {
                 Text("\(selected.title) · \(selected.author)")
                     .font(Theme.Fonts.displayItalic(20))

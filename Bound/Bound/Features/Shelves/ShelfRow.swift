@@ -20,18 +20,20 @@ struct ShelfRow: View {
                     .foregroundStyle(Theme.Colors.inkMuted)
             }
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .bottom, spacing: 3) {
-                    ForEach(books) { book in
-                        SpineView(book: book, isLifted: selected?.id == book.id) {
-                            selected = (selected?.id == book.id) ? nil : book
+            // spines + plank as one unit, no gap, so the books stand on the wood
+            VStack(spacing: 0) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .bottom, spacing: 3) {
+                        ForEach(books) { book in
+                            SpineView(book: book, isLifted: selected?.id == book.id) {
+                                selected = (selected?.id == book.id) ? nil : book
+                            }
                         }
                     }
+                    .padding(.horizontal, 12)
+                    .frame(height: 156, alignment: .bottom)   // pin spines to the bottom edge; top is lift headroom
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 28)          // headroom so a lifted spine isn't clipped
-            }
-            .frame(height: 156, alignment: .bottom)
+                .frame(height: 156)
             .overlay {
                 if books.isEmpty {
                     Text("Nothing here yet")
@@ -42,7 +44,8 @@ struct ShelfRow: View {
                 }
             }
 
-            OakPlank()
+                OakPlank()
+            }
         }
     }
 }

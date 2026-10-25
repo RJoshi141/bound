@@ -23,6 +23,6 @@ struct MainTabsView: View {
                 MeView()
             }
         }
-        .tint(Theme.Colors.forest)
+        .tint(Theme.Colors.oxblood)     // seal red
     }
 }
