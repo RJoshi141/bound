@@ -63,6 +63,7 @@ enum AppKeys {
     static let readingGoal = "readingGoal"
     static let clubID = "clubID"
     static let inviteCode = "inviteCode"
+    static let clubFoundedYear = "clubFoundedYear"
 }
 
 #Preview {

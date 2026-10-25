@@ -34,6 +34,8 @@ final class LedgerEntry {
     var clubRating: Double
     var myRating: Int?
     var spineHex: String
+    /// The past meetup this line comes from.
+    var remoteID: UUID?
 
     init(month: Date, title: String, author: String, clubRating: Double, myRating: Int? = nil, spineHex: String) {
         self.month = month

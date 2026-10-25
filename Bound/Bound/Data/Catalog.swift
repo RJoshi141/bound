@@ -1,12 +1,18 @@
 import Foundation
 
-/// Stand-in for a real book search API (Open Library / Google Books later).
+/// A search result: from Open Library, or from the small built-in list of classics shown before you type.
 struct CatalogBook: Identifiable, Hashable {
     let title: String
     let author: String
     let year: Int?
-    let pageCount: Int
-    var id: String { title + author }
+    let pageCount: Int          // 0 when Open Library doesn't know
+    var openLibraryKey: String? = nil
+    var coverID: Int? = nil
+    var id: String { openLibraryKey ?? title + author }
+
+    var coverURL: URL? {
+        coverID.flatMap { URL(string: "https://covers.openlibrary.org/b/id/\($0)-S.jpg") }
+    }
 }
 
 enum Catalog {

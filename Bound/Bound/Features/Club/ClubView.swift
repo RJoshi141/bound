@@ -11,6 +11,7 @@ struct ClubView: View {
     @Query(sort: \ClubMember.booksRead, order: .reverse) private var members: [ClubMember]
     @Query(sort: \LedgerEntry.month, order: .reverse) private var ledger: [LedgerEntry]
     @Query private var recs: [Recommendation]
+    @AppStorage(AppKeys.clubFoundedYear) private var foundedYear = 0
 
     @State private var showLedger = false
 
@@ -39,7 +40,7 @@ struct ClubView: View {
     private var header: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                MonoLabel("\(members.count + 1) members · est. 2024", color: Theme.Colors.oxblood)
+                MonoLabel("\(members.count + 1) members" + (foundedYear > 0 ? " · est. \(foundedYear)" : ""), color: Theme.Colors.oxblood)
                 Text(clubName)
                     .font(Theme.Fonts.display(42))
                     .foregroundStyle(Theme.Colors.ink)
@@ -169,6 +170,14 @@ struct LedgerCard: View {
             .padding(.horizontal, 14)
             .frame(height: 30)
 
+            if entries.isEmpty {
+                Text("Each meetup gets written in here once it's happened.")
+                    .font(Theme.Fonts.body(14))
+                    .foregroundStyle(Theme.Colors.inkMuted)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .overlay(alignment: .top) { Rectangle().fill(Color(hex: "C9D6E3")).frame(height: 1) }
+            }
+
             ForEach(entries) { entry in
                 HStack {
                     Text(entry.month.formatted(.dateTime.month(.abbreviated).year(.twoDigits)))
@@ -177,7 +186,7 @@ struct LedgerCard: View {
                         .frame(width: 64, alignment: .leading)
                     Text(entry.title).font(Theme.Fonts.display(18)).lineLimit(1)
                     Spacer()
-                    Text(String(format: "%.1f", entry.clubRating))
+                    Text(entry.clubRating > 0 ? String(format: "%.1f", entry.clubRating) : "–")
                         .font(Theme.Fonts.body(14, weight: entry.clubRating >= 4.5 ? .bold : .regular))
                         .frame(width: 44, alignment: .trailing)
                     Text(entry.myRating.map(String.init) ?? "–")
@@ -189,7 +198,7 @@ struct LedgerCard: View {
                 .overlay(alignment: .top) { Rectangle().fill(Color(hex: "C9D6E3")).frame(height: 1) }
             }
 
-            if let onSeeAll {
+            if let onSeeAll, total > 0 {
                 Button("See all \(total)", action: onSeeAll)
                     .font(Theme.Fonts.mono(11, medium: true))
                     .tracking(1.2)
@@ -210,10 +219,13 @@ struct LedgerCard: View {
 struct LedgerView: View {
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \LedgerEntry.month, order: .reverse) private var ledger: [LedgerEntry]
+    @AppStorage(AppKeys.clubFoundedYear) private var foundedYear = 0
 
+    /// Only books someone rated count toward the average.
     private var average: Double {
-        guard !ledger.isEmpty else { return 0 }
-        return ledger.map(\.clubRating).reduce(0, +) / Double(ledger.count)
+        let rated = ledger.map(\.clubRating).filter { $0 > 0 }
+        guard !rated.isEmpty else { return 0 }
+        return rated.reduce(0, +) / Double(rated.count)
     }
 
     var body: some View {
@@ -227,12 +239,12 @@ struct LedgerView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     VStack(alignment: .leading, spacing: 4) {
-                        MonoLabel("Since 2024", color: Theme.Colors.oxblood)
+                        MonoLabel(foundedYear > 0 ? "Since \(foundedYear)" : "Club history", color: Theme.Colors.oxblood)
                         Text("The ledger").font(Theme.Fonts.display(46))
                     }
                     HStack(spacing: 0) {
                         stat("\(ledger.count)", "Books")
-                        stat(String(format: "%.1f", average), "Avg rating")
+                        stat(average > 0 ? String(format: "%.1f", average) : "–", "Avg rating")
                         stat(ledger.max { $0.clubRating < $1.clubRating }?.title ?? "–", "Club favourite")
                     }
                     .overlay(alignment: .top) { Rectangle().fill(Theme.Colors.ink).frame(height: 1.5) }

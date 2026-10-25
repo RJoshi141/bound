@@ -116,7 +116,28 @@ final class ClubSync {
                     .eq("club_id", value: clubID)
                     .execute().value
 
+                // the ledger: every past meetup, with the club's average rating from notes
+                let ledger: [RemoteLedgerRow] = try await supabase.from("club_ledger")
+                    .select("meetup_id, starts_at, title, author, book_id, club_rating")
+                    .eq("club_id", value: clubID)
+                    .order("starts_at", ascending: false)
+                    .execute().value
+                let myRatings: [RemoteMyRating] = try await supabase.from("notes")
+                    .select("book_id, rating, created_at")
+                    .eq("club_id", value: clubID)
+                    .eq("author_id", value: userID)
+                    .execute().value
+
+                let club: RemoteClubInfo = try await supabase.from("clubs")
+                    .select("name, created_at")
+                    .eq("id", value: clubID)
+                    .single()
+                    .execute().value
+                UserDefaults.standard.set(club.name, forKey: AppKeys.clubName)
+                UserDefaults.standard.set(Calendar.current.component(.year, from: club.createdAt), forKey: AppKeys.clubFoundedYear)
+
                 applyMembers(members, shelves: shelves, me: userID, in: context)
+                applyLedger(ledger, myRatings: myRatings, in: context)
                 applyMeetups(meetups, me: userID, in: context)
                 applyPicks(options, votes: votes, me: userID, in: context)
                 try? context.save()
@@ -158,6 +179,32 @@ final class ClubSync {
             } else {
                 member.status = "Just joined"
             }
+        }
+    }
+
+    private func applyLedger(_ rows: [RemoteLedgerRow], myRatings: [RemoteMyRating], in context: ModelContext) {
+        let local = (try? context.fetch(FetchDescriptor<LedgerEntry>())) ?? []
+        let byID = upsertIndex(local, id: \.remoteID, keep: Set(rows.map(\.meetupID)), in: context)
+
+        // your latest rating for each book
+        var mine: [UUID: Int] = [:]
+        for rating in myRatings.sorted(by: { $0.createdAt < $1.createdAt }) {
+            if let stars = rating.rating { mine[rating.bookID] = stars }
+        }
+
+        for row in rows {
+            let entry = byID[row.meetupID] ?? {
+                let new = LedgerEntry(month: row.startsAt, title: row.title, author: row.author, clubRating: 0, spineHex: "")
+                new.remoteID = row.meetupID
+                context.insert(new)
+                return new
+            }()
+            entry.month = row.startsAt
+            entry.title = row.title
+            entry.author = row.author
+            entry.clubRating = row.clubRating ?? 0          // 0 = nobody rated it yet
+            entry.myRating = mine[row.bookID]
+            entry.spineHex = Catalog.spineHex(for: row.title)
         }
     }
 
@@ -338,6 +385,42 @@ nonisolated struct RemoteMemberBook: Decodable, Sendable {
         case userID = "user_id"
         case currentPage = "current_page"
         case addedAt = "added_at"
+    }
+}
+
+nonisolated struct RemoteLedgerRow: Decodable, Sendable {
+    let meetupID: UUID
+    let startsAt: Date
+    let title: String
+    let author: String
+    let bookID: UUID
+    let clubRating: Double?
+    enum CodingKeys: String, CodingKey {
+        case title, author
+        case meetupID = "meetup_id"
+        case startsAt = "starts_at"
+        case bookID = "book_id"
+        case clubRating = "club_rating"
+    }
+}
+
+nonisolated struct RemoteMyRating: Decodable, Sendable {
+    let bookID: UUID
+    let rating: Int?
+    let createdAt: Date
+    enum CodingKeys: String, CodingKey {
+        case rating
+        case bookID = "book_id"
+        case createdAt = "created_at"
+    }
+}
+
+nonisolated struct RemoteClubInfo: Decodable, Sendable {
+    let name: String
+    let createdAt: Date
+    enum CodingKeys: String, CodingKey {
+        case name
+        case createdAt = "created_at"
     }
 }
 

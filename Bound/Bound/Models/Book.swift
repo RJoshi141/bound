@@ -17,6 +17,8 @@ final class Book {
     var remoteID: UUID?
     /// Row id in the shared `books` catalog. Club notes hang off this.
     var catalogID: UUID?
+    /// Open Library work key ("OL45804W"), when the book came from search.
+    var openLibraryKey: String?
     /// What we last sent or received, so we only push real changes.
     var syncedFingerprint: String?
 

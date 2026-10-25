@@ -88,7 +88,7 @@ final class ShelfSync {
         do {
             rows = try await supabase
                 .from("user_books")
-                .select("id, shelf, current_page, is_favourite, spine_hex, added_at, book:books(id, title, author, year, page_count)")
+                .select("id, shelf, current_page, is_favourite, spine_hex, added_at, book:books(id, title, author, year, page_count, open_library_key)")
                 .eq("user_id", value: userID)   // RLS also lets you read clubmates' shelves
                 .execute()
                 .value
@@ -131,6 +131,7 @@ final class ShelfSync {
             book.spineHex = row.spineHex
             book.addedAt = row.addedAt
             book.catalogID = row.book.id
+            if let key = row.book.openLibraryKey, !key.hasPrefix("local:") { book.openLibraryKey = key }
             book.syncedFingerprint = book.syncFingerprint
         }
 
@@ -182,7 +183,8 @@ final class ShelfSync {
                             .execute()
                     } else {
                         let catalogID = try await CatalogService.bookID(title: snapshot.title, author: snapshot.author,
-                                                                       year: snapshot.year, pageCount: snapshot.pageCount)
+                                                                       year: snapshot.year, pageCount: snapshot.pageCount,
+                                                                       openLibraryKey: snapshot.openLibraryKey)
                         let saved: IDRow = try await supabase.from("user_books")
                             .upsert(snapshot.insert(userID: userID, bookID: catalogID), onConflict: "user_id,book_id")
                             .select("id")
@@ -334,6 +336,7 @@ private struct BookSnapshot {
     let spineHex: String
     let addedAt: Date
     let fingerprint: String
+    let openLibraryKey: String?
 
     init(_ book: Book) {
         remoteID = book.remoteID
@@ -347,6 +350,7 @@ private struct BookSnapshot {
         spineHex = book.spineHex
         addedAt = book.addedAt
         fingerprint = book.syncFingerprint
+        openLibraryKey = book.openLibraryKey
     }
 
     var patch: UserBookPatch {
@@ -387,10 +391,12 @@ nonisolated struct RemoteBook: Decodable, Sendable {
     let author: String
     let year: Int?
     let pageCount: Int
+    let openLibraryKey: String?
 
     enum CodingKeys: String, CodingKey {
         case id, title, author, year
         case pageCount = "page_count"
+        case openLibraryKey = "open_library_key"
     }
 }
 

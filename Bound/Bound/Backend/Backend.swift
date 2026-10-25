@@ -33,8 +33,9 @@ enum CatalogService {
         "local:" + "\(title)|\(author)".lowercased().trimmingCharacters(in: .whitespaces)
     }
 
-    static func bookID(title: String, author: String, year: Int?, pageCount: Int) async throws -> UUID {
-        let key = key(title: title, author: author)
+    static func bookID(title: String, author: String, year: Int?, pageCount: Int,
+                       openLibraryKey: String? = nil) async throws -> UUID {
+        let key = openLibraryKey ?? key(title: title, author: author)
         if let found = try await find(key: key) { return found }
         do {
             let inserted: IDRow = try await supabase.from("books")

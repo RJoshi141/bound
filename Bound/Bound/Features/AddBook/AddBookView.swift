@@ -11,11 +11,27 @@ struct AddBookView: View {
     @State private var picked: CatalogBook?
     @State private var shelf: ShelfKind = .toRead
     @State private var favourite = false
+    @State private var pagesText = ""
+    @State private var found: [CatalogBook] = Catalog.search("")
+    @State private var isSearching = false
+    @State private var searchFailed = false
+    @State private var showScanner = false
     @FocusState private var searchFocused: Bool
 
     private var results: [CatalogBook] {
-        let ownedTitles = Set(owned.map { $0.title.lowercased() })
-        return Catalog.search(query).filter { !ownedTitles.contains($0.title.lowercased()) }
+        let ownedKeys = Set(owned.compactMap(\.openLibraryKey))
+        let ownedTitles = Set(owned.map { "\($0.title)|\($0.author)".lowercased() })
+        return found.filter { book in
+            if let key = book.openLibraryKey, ownedKeys.contains(key) { return false }
+            return !ownedTitles.contains("\(book.title)|\(book.author)".lowercased())
+        }
+    }
+
+    private var statusLabel: String {
+        if query.trimmingCharacters(in: .whitespaces).isEmpty { return "Suggested" }
+        if isSearching { return "Searching Open Library…" }
+        if searchFailed { return "Couldn't reach Open Library" }
+        return "\(results.count) results"
     }
 
     var body: some View {
@@ -47,14 +63,15 @@ struct AddBookView: View {
                 .background(Theme.Colors.paperDeep)
 
                 IconButton(systemName: "barcode.viewfinder", label: "Scan a barcode") {
-                    // TODO: VisionKit DataScannerViewController
+                    searchFocused = false
+                    showScanner = true
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
 
             HStack {
-                MonoLabel(query.isEmpty ? "Suggested" : "\(results.count) results")
+                MonoLabel(statusLabel)
                 Spacer()
             }
             .padding(.horizontal, 20)
@@ -62,13 +79,14 @@ struct AddBookView: View {
             List(results) { book in
                 Button {
                     searchFocused = false
+                    pagesText = book.pageCount > 0 ? String(book.pageCount) : ""
                     picked = book
                 } label: {
                     HStack(spacing: 14) {
-                        SpineSwatch(hex: Catalog.spineHex(for: book.title), width: 30, height: 56)
+                        thumbnail(for: book)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(book.title).font(Theme.Fonts.body(16, weight: .semibold))
-                            Text([book.author, book.year.map(String.init), "\(book.pageCount) pp"].compactMap { $0 }.joined(separator: " · "))
+                            Text([book.author, book.year.map(String.init), book.pageCount > 0 ? "\(book.pageCount) pp" : nil].compactMap { $0 }.joined(separator: " · "))
                                 .font(Theme.Fonts.body(13))
                                 .foregroundStyle(Theme.Colors.inkMuted)
                         }
@@ -91,7 +109,52 @@ struct AddBookView: View {
         .sheet(item: $picked) { book in
             addSheet(for: book)
         }
+        .fullScreenCover(isPresented: $showScanner) {
+            ScanSheet { isbn in query = isbn }
+        }
+        // debounced: wait for a pause in typing, then search
+        .task(id: query) {
+            let q = query.trimmingCharacters(in: .whitespaces)
+            searchFailed = false
+            guard q.count >= 2 else {
+                isSearching = false
+                found = Catalog.search("")
+                return
+            }
+            isSearching = true
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled else { return }
+            do {
+                let books = try await OpenLibrary.search(q)
+                guard !Task.isCancelled else { return }
+                found = books
+            } catch {
+                guard !Task.isCancelled else { return }
+                searchFailed = true
+                found = Catalog.search(q)       // offline: fall back to the built-in list
+            }
+            isSearching = false
+        }
     }
+
+    /// Open Library cover when there is one, otherwise a cloth spine.
+    @ViewBuilder
+    private func thumbnail(for book: CatalogBook) -> some View {
+        if let url = book.coverURL {
+            AsyncImage(url: url) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                SpineSwatch(hex: Catalog.spineHex(for: book.title), width: 38, height: 56)
+            }
+            .frame(width: 38, height: 56)
+            .clipped()
+            .overlay(Rectangle().stroke(Theme.Colors.line, lineWidth: 0.5))
+        } else {
+            SpineSwatch(hex: Catalog.spineHex(for: book.title), width: 38, height: 56)
+        }
+    }
+
+    private var pages: Int { Int(pagesText) ?? 0 }
 
     private func addSheet(for book: CatalogBook) -> some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -130,12 +193,27 @@ struct AddBookView: View {
                 }
             }
 
+            HStack {
+                MonoLabel("Pages")
+                Spacer()
+                TextField("", text: $pagesText, prompt: Text("e.g. 320").foregroundStyle(Theme.Colors.inkMuted))
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .font(Theme.Fonts.body(16))
+                    .frame(width: 100, height: 40)
+                    .padding(.horizontal, 10)
+                    .background(Theme.Colors.card)
+                    .overlay(Rectangle().stroke(Theme.Colors.lineStrong, lineWidth: 1))
+            }
+
             Button("Add to shelf") { add(book) }
                 .buttonStyle(PrimaryButtonStyle())
+                .disabled(pages <= 0)
+                .opacity(pages > 0 ? 1 : 0.45)
         }
         .foregroundStyle(Theme.Colors.ink)
         .padding(24)
-        .presentationDetents([.height(420)])
+        .presentationDetents([.height(480)])
         .presentationBackground(Theme.Colors.paper)
     }
 
@@ -144,12 +222,13 @@ struct AddBookView: View {
             title: item.title,
             author: item.author,
             year: item.year,
-            pageCount: item.pageCount,
+            pageCount: pages,
             shelf: shelf,
             isFavourite: favourite,
             spineHex: Catalog.spineHex(for: item.title)
         )
-        if shelf == .finished { book.currentPage = item.pageCount }
+        book.openLibraryKey = item.openLibraryKey
+        if shelf == .finished { book.currentPage = pages }
         context.insert(book)
         picked = nil
         dismiss()
