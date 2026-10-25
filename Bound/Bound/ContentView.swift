@@ -23,6 +23,8 @@ struct ContentView: View {
                     .transition(reduceMotion ? .opacity : .tearAway)
             }
         }
+        // paper all the way to the screen edges, under everything, so no white ever peeks through
+        .background { Theme.Colors.paper.ignoresSafeArea() }
         .onChange(of: hasJoined) { _, joined in
             withAnimation(joined ? .tear : .easeInOut(duration: 0.3)) { showApp = joined }
         }
