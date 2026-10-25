@@ -119,7 +119,7 @@ struct PlanMeetupView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         fieldLabel("Where")
                         TextField("Place", text: $place)
-                            .font(Theme.Fonts.script(26))
+                            .font(Theme.Fonts.body(16))
                             .padding(.horizontal, 14)
                             .frame(height: 48)
                             .background(Theme.Colors.card)

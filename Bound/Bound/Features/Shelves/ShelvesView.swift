@@ -75,9 +75,7 @@ struct ShelvesView: View {
     private var header: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(clubName)
-                    .font(Theme.Fonts.script(24))
-                    .foregroundStyle(Theme.Colors.oxblood)
+                MonoLabel(clubName, color: Theme.Colors.oxblood)
                 Text("My shelves")
                     .font(Theme.Fonts.display(46))
                     .foregroundStyle(Theme.Colors.ink)

@@ -26,6 +26,15 @@ final class Meetup {
             case .notGoing: "Can't"
             }
         }
+
+        /// Fill when selected.
+        var hex: String {
+            switch self {
+            case .going: "2F4A35"      // forest
+            case .maybe: "B4572A"      // rust orange
+            case .notGoing: "8A2C22"   // oxblood red
+            }
+        }
     }
 
     init(

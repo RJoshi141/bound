@@ -116,8 +116,8 @@ struct MeetupView: View {
                             .tracking(1.2)
                             .foregroundStyle(isOn ? Theme.Colors.card : Theme.Colors.ink)
                             .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(isOn ? Theme.Colors.forest : .clear)
-                            .overlay(Rectangle().stroke(isOn ? Theme.Colors.forest : Theme.Colors.ink, lineWidth: 1.5))
+                            .background(isOn ? Color(hex: option.hex) : .clear)
+                            .overlay(Rectangle().stroke(isOn ? Color(hex: option.hex) : Theme.Colors.ink, lineWidth: 1.5))
                             .overlay(Rectangle().inset(by: 3).stroke(isOn ? Color(hex: "E9D6A8") : .clear, lineWidth: 0.75))
                     }
                     .buttonStyle(.plain)
@@ -151,7 +151,7 @@ struct MeetupView: View {
                         .foregroundStyle(Theme.Colors.oxblood)
                         .padding(.top, 3)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(note.text).font(Theme.Fonts.script(22)).foregroundStyle(Theme.Colors.ink)
+                        Text(note.text).font(Theme.Fonts.body(15)).foregroundStyle(Theme.Colors.ink)
                         MonoLabel("\(note.authorName) · p. \(note.page)", size: 10)
                     }
                 }
@@ -238,7 +238,7 @@ struct TicketCard: View {
                 Spacer()
                 VStack(alignment: .leading, spacing: 2) {
                     MonoLabel("Where", size: 10)
-                    Text(meetup.place).font(Theme.Fonts.script(30))
+                    Text(meetup.place).font(Theme.Fonts.display(26))
                     Text(meetup.address).font(Theme.Fonts.body(14))
                 }
                 Spacer()
@@ -255,8 +255,7 @@ struct TicketCard: View {
 
             if !meetup.bringing.isEmpty {
                 HStack {
-                    MonoLabel("Bringing", size: 10)
-                    Text(meetup.bringing).font(Theme.Fonts.script(21)).foregroundStyle(Theme.Colors.ink)
+                    Text("Bringing: \(meetup.bringing)").font(Theme.Fonts.body(13)).foregroundStyle(Theme.Colors.inkMuted)
                     Spacer()
                 }
                 .padding(.horizontal, 16)

@@ -77,7 +77,8 @@ struct BookDetailView: View {
             IconButton(
                 systemName: book.isFavourite ? "heart.fill" : "heart",
                 label: book.isFavourite ? "Remove from favourites" : "Add to favourites",
-                color: Theme.Colors.oxblood
+                color: Theme.Colors.oxblood,
+                bordered: false
             ) { book.isFavourite.toggle() }
             Menu {
                 Picker("Shelf", selection: $book.shelf) {
@@ -97,7 +98,7 @@ struct BookDetailView: View {
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.Colors.ink)
                     .frame(width: 44, height: 44)
-                    .overlay(Rectangle().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
+                    .contentShape(Rectangle())
             }
             .accessibilityLabel("More options")
         }

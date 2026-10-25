@@ -104,7 +104,8 @@ struct AddBookView: View {
                 IconButton(
                     systemName: favourite ? "heart.fill" : "heart",
                     label: favourite ? "Remove from favourites" : "Add to favourites",
-                    color: Theme.Colors.oxblood
+                    color: Theme.Colors.oxblood,
+                    bordered: false
                 ) { favourite.toggle() }
             }
 

@@ -13,7 +13,7 @@ struct NoteCard: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
-                    Text(note.authorName).font(Theme.Fonts.script(24)).foregroundStyle(Theme.Colors.oxblood)
+                    Text(note.authorName).font(Theme.Fonts.body(14, weight: .semibold))
                     if let rating = note.rating {
                         Stars(rating: Double(rating), size: 10)
                     }
@@ -21,8 +21,8 @@ struct NoteCard: View {
                     MonoLabel("p. \(note.page)", size: 10)
                 }
                 Text(note.text)
-                    .font(Theme.Fonts.script(23))
-                    .lineSpacing(1)
+                    .font(Theme.Fonts.body(15))
+                    .lineSpacing(5)
                     .foregroundStyle(Theme.Colors.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 if note.discussAtMeetup {

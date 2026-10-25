@@ -71,13 +71,13 @@ struct WriteNoteView: View {
                         ZStack(alignment: .topLeading) {
                             if text.isEmpty {
                                 Text("What stayed with you?")
-                                    .font(Theme.Fonts.script(24))
+                                    .font(Theme.Fonts.body(16))
                                     .foregroundStyle(Theme.Colors.inkMuted)
                                     .padding(.horizontal, 18)
                                     .padding(.vertical, 20)
                             }
                             TextEditor(text: $text)
-                                .font(Theme.Fonts.script(24))
+                                .font(Theme.Fonts.body(16))
                                 .scrollContentBackground(.hidden)
                                 .focused($editorFocused)
                                 .padding(12)

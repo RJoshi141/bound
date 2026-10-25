@@ -40,7 +40,7 @@ struct ClubView: View {
             VStack(alignment: .leading, spacing: 4) {
                 MonoLabel("\(members.count + 1) members · est. 2024", color: Theme.Colors.oxblood)
                 Text(clubName)
-                    .font(Theme.Fonts.script(46))
+                    .font(Theme.Fonts.display(42))
                     .foregroundStyle(Theme.Colors.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -90,7 +90,7 @@ struct ClubView: View {
         HStack(spacing: 12) {
             Avatar(initial: initial, hex: hex, size: 38)
             VStack(alignment: .leading, spacing: 2) {
-                Text(name).font(Theme.Fonts.script(25))
+                Text(name).font(Theme.Fonts.body(15, weight: .semibold))
                 Text(status).font(Theme.Fonts.body(13)).foregroundStyle(Theme.Colors.inkMuted)
             }
             Spacer()
@@ -117,10 +117,10 @@ struct RecCard: View {
             HStack(alignment: .top, spacing: 12) {
                 SpineSwatch(hex: rec.spineHex, width: 26, height: 58)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("from \(rec.fromName)").font(Theme.Fonts.script(20)).foregroundStyle(Theme.Colors.oxblood)
+                    MonoLabel("From \(rec.fromName)", color: Theme.Colors.oxblood, size: 10)
                     Text(rec.title).font(Theme.Fonts.display(22)).lineLimit(1)
                     Text(rec.reason)
-                        .font(Theme.Fonts.script(17))
+                        .font(Theme.Fonts.body(12))
                         .foregroundStyle(Theme.Colors.inkMuted)
                         .lineLimit(2)
                 }

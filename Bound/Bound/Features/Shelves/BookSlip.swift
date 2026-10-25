@@ -27,7 +27,8 @@ struct BookSlip: View {
             IconButton(
                 systemName: book.isFavourite ? "heart.fill" : "heart",
                 label: book.isFavourite ? "Remove from favourites" : "Add to favourites",
-                color: Theme.Colors.oxblood
+                color: Theme.Colors.oxblood,
+                bordered: false
             ) { book.isFavourite.toggle() }
 
             Button("Open", action: onOpen)

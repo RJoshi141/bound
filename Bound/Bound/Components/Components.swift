@@ -98,12 +98,13 @@ struct SmallButtonStyle: ButtonStyle {
     }
 }
 
-/// Square 44pt icon button with a ruled outline.
+/// 44pt icon button. Square ruled outline by default; `bordered: false` for bare icons.
 struct IconButton: View {
     let systemName: String
     let label: String
     var color: Color = Theme.Colors.ink
     var filled = false
+    var bordered = true
     let action: () -> Void
 
     var body: some View {
@@ -113,7 +114,8 @@ struct IconButton: View {
                 .foregroundStyle(filled ? Theme.Colors.card : color)
                 .frame(width: 44, height: 44)
                 .background(filled ? color : .clear)
-                .overlay(Rectangle().stroke(color, lineWidth: 1.5))
+                .overlay(Rectangle().stroke(bordered ? color : .clear, lineWidth: 1.5))
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

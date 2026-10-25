@@ -58,7 +58,7 @@ struct JoinClubView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Your first name").font(Theme.Fonts.body(13, weight: .semibold))
                         TextField("", text: $name, prompt: Text("Ana").foregroundStyle(Theme.Colors.inkMuted))
-                            .font(Theme.Fonts.script(28))
+                            .font(Theme.Fonts.body(17))
                             .textContentType(.givenName)
                             .padding(.horizontal, 16)
                             .frame(height: 52)
@@ -110,7 +110,7 @@ struct JoinClubView: View {
                         let chars = Array(code)
                         let isCurrent = index == chars.count && codeFocused
                         Text(index < chars.count ? String(chars[index]) : "")
-                            .font(Theme.Fonts.script(36))
+                            .font(Theme.Fonts.mono(24, medium: true))
                             .frame(maxWidth: .infinity, minHeight: 60)
                             .background(Theme.Colors.card)
                             .overlay(
@@ -131,15 +131,12 @@ struct JoinClubView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Club name").font(Theme.Fonts.body(13, weight: .semibold))
             TextField("", text: $newClubName, prompt: Text("Tuesday Night Readers").foregroundStyle(Theme.Colors.inkMuted))
-                .font(Theme.Fonts.script(28))
+                .font(Theme.Fonts.body(17))
                 .padding(.horizontal, 16)
                 .frame(height: 52)
                 .background(Theme.Colors.card)
                 .overlay(Rectangle().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                MonoLabel("Your invite code")
-                Text("BND7Q2").font(Theme.Fonts.script(26)).foregroundStyle(Theme.Colors.oxblood)
-            }
+            MonoLabel("Your invite code: BND7Q2")
         }
     }
 
@@ -150,7 +147,7 @@ struct JoinClubView: View {
                 .frame(width: 52, height: 52)
                 .overlay(Text("T").font(Theme.Fonts.masthead(30)).foregroundStyle(Theme.Colors.card))
             VStack(alignment: .leading, spacing: 2) {
-                Text("Tuesday Night Readers").font(Theme.Fonts.script(26))
+                Text("Tuesday Night Readers").font(Theme.Fonts.body(16, weight: .semibold))
                 Text("7 members · Now reading Middlemarch")
                     .font(Theme.Fonts.body(13))
                     .foregroundStyle(Theme.Colors.inkMuted)

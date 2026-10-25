@@ -41,7 +41,7 @@ struct MeView: View {
         HStack(spacing: 16) {
             Avatar(initial: String(name.prefix(1)), hex: Theme.Spine.forest, size: 68)
             VStack(alignment: .leading, spacing: 2) {
-                Text(name).font(Theme.Fonts.script(50))
+                Text(name).font(Theme.Fonts.display(40))
                 Text("Member of \(clubName)").font(Theme.Fonts.body(14)).foregroundStyle(Theme.Colors.inkMuted)
             }
         }

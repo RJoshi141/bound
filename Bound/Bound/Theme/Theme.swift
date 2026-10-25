@@ -50,7 +50,7 @@ enum Theme {
         static func letterpress(_ size: CGFloat) -> Font {
             .custom("IM_FELL_English_SC", size: size, relativeTo: .body)
         }
-        /// Copperplate script for anything a person wrote: notes, names, codes.
+        /// Copperplate script. Only used for avatar initials (the "profile picture").
         /// Runs small, so use roughly 1.4x the size you'd give body text.
         static func script(_ size: CGFloat) -> Font {
             .custom("PinyonScript-Regular", size: size, relativeTo: .body)
