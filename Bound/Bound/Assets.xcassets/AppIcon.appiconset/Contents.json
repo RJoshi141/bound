@@ -4,7 +4,7 @@
       "idiom": "universal",
       "platform": "ios",
       "size": "1024x1024",
-      "filename": "AppIcon.png"
+      "filename": "BoundIcon-Light.png"
     },
     {
       "appearances": [
@@ -16,7 +16,7 @@
       "idiom": "universal",
       "platform": "ios",
       "size": "1024x1024",
-      "filename": "AppIcon-Dark.png"
+      "filename": "BoundIcon-Dark.png"
     },
     {
       "appearances": [
@@ -28,7 +28,7 @@
       "idiom": "universal",
       "platform": "ios",
       "size": "1024x1024",
-      "filename": "AppIcon-Tinted.png"
+      "filename": "BoundIcon-Tinted.png"
     }
   ],
   "info": {
