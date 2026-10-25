@@ -13,6 +13,10 @@ final class Book {
     var isClubPick: Bool
     var spineHex: String
     var addedAt: Date
+    /// Row id in Supabase `user_books`; nil until the first push.
+    var remoteID: UUID?
+    /// What we last sent or received, so we only push real changes.
+    var syncedFingerprint: String?
 
     @Relationship(deleteRule: .cascade, inverse: \Note.book)
     var notes: [Note] = []
@@ -45,6 +49,9 @@ final class Book {
         get { ShelfKind(rawValue: shelfRaw) ?? .toRead }
         set { shelfRaw = newValue.rawValue }
     }
+
+    /// The fields that sync. If this differs from `syncedFingerprint`, the book needs pushing.
+    var syncFingerprint: String { "\(shelfRaw)|\(currentPage)|\(isFavourite)|\(spineHex)" }
 
     var progress: Double {
         guard pageCount > 0 else { return 0 }

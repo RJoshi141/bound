@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var auth = AuthStore()
     @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     // AppStorage writes don't carry withAnimation, so mirror it into State and animate that
     @State private var showApp = UserDefaults.standard.bool(forKey: AppKeys.hasJoinedClub)
 
@@ -31,8 +32,23 @@ struct ContentView: View {
         }
         .preferredColorScheme(.light)       // paper look is light-only for now
         .environment(auth)
-        .task { SampleData.seedIfNeeded(context) }
+        .task { SampleData.seedIfNeeded(context, includeBooks: !hasJoined) }
         .task { await auth.start() }      // restores the saved session, then listens
+        // shelves follow whoever is signed in
+        .task(id: auth.userID) {
+            if let userID = auth.userID {
+                await ShelfSync.shared.start(context: context, userID: userID)
+            } else {
+                ShelfSync.shared.stop()
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            switch phase {
+            case .active: Task { await ShelfSync.shared.pull() }
+            case .background: Task { await ShelfSync.shared.push() }
+            default: break
+            }
+        }
     }
 }
 
