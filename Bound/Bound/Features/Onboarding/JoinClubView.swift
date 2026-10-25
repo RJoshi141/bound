@@ -2,11 +2,11 @@ import Foundation
 import SwiftUI
 import UIKit
 
-/// Join or start a club. Two phases:
+/// Join or start a club, or log back in. Two phases:
 ///   1. details: invite code (or club name), first name, email → we email a sign-in code
 ///   2. code: type the 6-digit code → sign in → join/create the club on the server
 struct JoinClubView: View {
-    enum Mode { case join, start }
+    enum Mode { case join, start, logIn }
     enum Phase { case details, code }
 
     /// Must match Supabase → Authentication → Sign In / Providers → Email → "Email OTP Length".
@@ -39,8 +39,10 @@ struct JoinClubView: View {
     private var trimmedEmail: String { email.trimmingCharacters(in: .whitespaces).lowercased() }
 
     private var detailsReady: Bool {
-        let base = !trimmedName.isEmpty && trimmedEmail.contains("@") && trimmedEmail.contains(".")
+        let emailOK = trimmedEmail.contains("@") && trimmedEmail.contains(".")
+        let base = !trimmedName.isEmpty && emailOK
         switch mode {
+        case .logIn: return emailOK
         case .join: return base && code.count == 6
         case .start: return base && !newClubName.trimmingCharacters(in: .whitespaces).isEmpty
         }
@@ -99,33 +101,56 @@ struct JoinClubView: View {
     private var detailsForm: some View {
         VStack(alignment: .leading, spacing: 22) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(mode == .join ? "Join your club" : "Start a club")
+                Text(heading)
                     .font(Theme.Fonts.display(44))
-                Text(mode == .join
-                     ? "Ask your host for the 6-character invite code."
-                     : "Name your club. You'll get a code to share with members.")
+                Text(subheading)
                     .font(Theme.Fonts.body(15))
                     .foregroundStyle(Theme.Colors.card.opacity(0.8))
             }
 
-            if mode == .join {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Invite code").font(Theme.Fonts.body(13, weight: .semibold))
-                    CodeBoxes(text: $code, focused: $codeFocused, allowLetters: true)
-                }
+            if mode == .logIn {
+                field("Email", text: $email, prompt: "you@example.com", content: .emailAddress, keyboard: .emailAddress)
             } else {
-                field("Club name", text: $newClubName, prompt: "Tuesday Night Readers")
+                signUpFields
             }
-
-            field("Your first name", text: $name, prompt: "Ana", content: .givenName)
-            field("Email", text: $email, prompt: "you@example.com", content: .emailAddress, keyboard: .emailAddress)
-
-            Toggle(isOn: $importHistory) {
-                Text("Import my reading history from Goodreads or StoryGraph")
-                    .font(Theme.Fonts.body(15))
-            }
-            .tint(Theme.Colors.forest)
         }
+    }
+
+    private var heading: String {
+        switch mode {
+        case .join: "Join your club"
+        case .start: "Start a club"
+        case .logIn: "Welcome back"
+        }
+    }
+
+    private var subheading: String {
+        switch mode {
+        case .join: "Ask your host for the 6-character invite code."
+        case .start: "Name your club. You'll get a code to share with members."
+        case .logIn: "Enter the email you joined with and we'll send you a code."
+        }
+    }
+
+    @ViewBuilder
+    private var signUpFields: some View {
+        if mode == .join {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Invite code").font(Theme.Fonts.body(13, weight: .semibold))
+                CodeBoxes(text: $code, focused: $codeFocused, allowLetters: true)
+            }
+        } else {
+            field("Club name", text: $newClubName, prompt: "Tuesday Night Readers")
+        }
+
+        field("Your first name", text: $name, prompt: "Ana", content: .givenName)
+        field("Email", text: $email, prompt: "you@example.com", content: .emailAddress, keyboard: .emailAddress)
+
+        Toggle(isOn: $importHistory) {
+            Text("Import my reading history from Goodreads or StoryGraph")
+                .font(Theme.Fonts.body(15))
+        }
+        .tint(Theme.Colors.forest)
     }
 
     private var codeForm: some View {
@@ -170,7 +195,12 @@ struct JoinClubView: View {
     private var primaryTitle: String {
         switch phase {
         case .details: "Email me a code"
-        case .code: mode == .join ? "Join club" : "Create club"
+        case .code:
+            switch mode {
+            case .join: "Join club"
+            case .start: "Create club"
+            case .logIn: "Log in"
+            }
         }
     }
 
@@ -214,6 +244,11 @@ struct JoinClubView: View {
             return
         }
 
+        if mode == .logIn {
+            await restoreClub()
+            return
+        }
+
         do {
             let club = mode == .join
                 ? try await ClubService.join(code: code)
@@ -231,6 +266,25 @@ struct JoinClubView: View {
             errorText = String(describing: error).contains("invalid invite code")
                 ? "That invite code didn't match a club. Check it with your host."
                 : "Signed in, but couldn't reach your club. Try again in a moment."
+        }
+    }
+
+    /// Returning member: pick up their club and name from the server.
+    private func restoreClub() async {
+        guard let userID = auth.userID else { return }
+        do {
+            guard let membership = try await ClubService.myClub(userID: userID) else {
+                errorText = "You're signed in, but this email isn't in a club yet. Go back and join or start one."
+                return
+            }
+            memberName = (try? await ClubService.displayName(for: userID)) ?? ""
+            clubName = membership.club.name
+            clubID = membership.club.id.uuidString
+            inviteCode = membership.club.inviteCode
+            isHost = membership.role == "host"
+            hasJoined = true
+        } catch {
+            errorText = "Signed in, but couldn't reach your club. Try again in a moment."
         }
     }
 }

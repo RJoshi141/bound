@@ -5,6 +5,7 @@ import SwiftUI
 struct WelcomeView: View {
     let onJoin: () -> Void
     let onStart: () -> Void
+    let onLogIn: () -> Void
 
     @State private var shown = false
 
@@ -32,6 +33,13 @@ struct WelcomeView: View {
                     .buttonStyle(PrimaryButtonStyle())
                 Button("Start a club", action: onStart)
                     .buttonStyle(SecondaryButtonStyle(color: Theme.Colors.card))
+                Button(action: onLogIn) {
+                    (Text("Already a member? ").foregroundStyle(Theme.Colors.card.opacity(0.8))
+                     + Text("Log in").underline().foregroundStyle(Theme.Colors.card))
+                        .font(Theme.Fonts.body(15, weight: .semibold))
+                        .shadow(color: .black.opacity(0.8), radius: 4, y: 1)
+                        .frame(height: 36)
+                }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 24)
@@ -71,5 +79,5 @@ struct WelcomeView: View {
 }
 
 #Preview {
-    WelcomeView(onJoin: {}, onStart: {})
+    WelcomeView(onJoin: {}, onStart: {}, onLogIn: {})
 }

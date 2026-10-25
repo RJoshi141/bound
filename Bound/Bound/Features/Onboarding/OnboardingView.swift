@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 struct OnboardingView: View {
-    enum Step { case welcome, join, start }
+    enum Step { case welcome, join, start, logIn }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var step: Step = .welcome
@@ -23,7 +23,8 @@ struct OnboardingView: View {
                 // the start screen tears away, bottom to top, to reveal the next page
                 WelcomeView(
                     onJoin: { go(to: .join) },
-                    onStart: { go(to: .start) }
+                    onStart: { go(to: .start) },
+                    onLogIn: { go(to: .logIn) }
                 )
                 .zIndex(1)
                 .transition(reduceMotion ? .opacity : .tearAway)
@@ -33,6 +34,10 @@ struct OnboardingView: View {
                     .transition(reduceMotion ? .opacity : .revealUnder)
             case .start:
                 JoinClubView(mode: .start, onBack: back)
+                    .zIndex(0)
+                    .transition(reduceMotion ? .opacity : .revealUnder)
+            case .logIn:
+                JoinClubView(mode: .logIn, onBack: back)
                     .zIndex(0)
                     .transition(reduceMotion ? .opacity : .revealUnder)
             }
