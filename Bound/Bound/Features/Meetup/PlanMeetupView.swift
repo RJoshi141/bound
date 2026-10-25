@@ -19,6 +19,7 @@ struct PlanMeetupView: View {
     @State private var wholeBook = true
     @State private var newDate = Date.now
     @State private var addingDate = false
+    @State private var showBookMenu = false
 
     private var winner: PickOption? {
         picks.max { $0.total < $1.total }
@@ -56,13 +57,8 @@ struct PlanMeetupView: View {
                                 }
                             }
                             Spacer()
-                            Menu("Change") {
-                                ForEach(picks) { pick in
-                                    Button(pick.title) { chosenTitle = pick.title }
-                                }
-                            }
-                            .font(Theme.Fonts.letterpress(17))
-                            .tint(Theme.Colors.forest)
+                            Button("Change") { showBookMenu = true }
+                                .buttonStyle(SmallButtonStyle())
                         }
                         .padding(14)
                         .paperCard()
@@ -152,6 +148,11 @@ struct PlanMeetupView: View {
         }
         .paperBackground()
         .toolbar(.hidden, for: .navigationBar)
+        .paperMenu(isPresented: $showBookMenu, topOffset: 250) {
+            [PaperMenuSection(label: "This month's pick", items: picks.map { pick in
+                PaperMenuItem(title: pick.title, isChecked: pick.title == book?.title) { chosenTitle = pick.title }
+            })]
+        }
     }
 
     private func fieldLabel(_ text: String) -> some View {

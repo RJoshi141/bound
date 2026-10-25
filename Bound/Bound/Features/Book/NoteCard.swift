@@ -9,7 +9,7 @@ struct NoteCard: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Avatar(initial: String(note.authorName.prefix(1)), hex: memberHex, size: 30)
+            Avatar(name: note.authorName, hex: memberHex, size: 36)
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {

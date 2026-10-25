@@ -129,8 +129,7 @@ struct MeetupView: View {
             HStack(spacing: 12) {
                 HStack(spacing: -8) {
                     ForEach(members.prefix(meetup.goingCount)) { member in
-                        Avatar(initial: member.initial, hex: member.colorHex, size: 30)
-                            .overlay(Circle().stroke(Theme.Colors.paper, lineWidth: 2))
+                        Avatar(name: member.name, hex: member.colorHex, size: 36)
                     }
                 }
                 Text("\(going) going · \(meetup.maybeCount) maybe")

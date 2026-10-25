@@ -164,19 +164,26 @@ struct BackButton: View {
 
 // MARK: - Bits
 
+/// Profile picture: a cut-paper silhouette in a coloured oval, like a Victorian cameo.
 struct Avatar: View {
-    let initial: String
+    let name: String
     let hex: String
-    var size: CGFloat = 34
+    var size: CGFloat = 34          // height; the oval is a little narrower
 
     var body: some View {
-        Text(initial)
-            .font(Theme.Fonts.script(size * 0.62))
-            .offset(y: size * 0.04)
-            .foregroundStyle(Color.isLight(hex: hex) ? Theme.Colors.ink : Theme.Colors.card)
-            .frame(width: size, height: size)
-            .background(Color(hex: hex), in: Circle())
-            .accessibilityHidden(true)
+        let width = size * 0.82
+        ZStack {
+            Ellipse().fill(Theme.Colors.card)
+            Ellipse().fill(Color(hex: hex).opacity(0.3))
+            SilhouetteView(kind: .forName(name))
+                .foregroundStyle(Theme.Colors.ink)
+                .frame(width: width * 0.94, height: size * 0.94)
+                .offset(y: size * 0.06)
+                .clipShape(Ellipse())
+            Ellipse().strokeBorder(Color(hex: hex), lineWidth: max(1.5, size * 0.05))
+        }
+        .frame(width: width, height: size)
+        .accessibilityHidden(true)
     }
 }
 
