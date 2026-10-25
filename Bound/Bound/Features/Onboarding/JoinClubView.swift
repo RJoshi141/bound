@@ -175,14 +175,20 @@ struct JoinClubView: View {
     }
 }
 
-/// Painting of stacked books on black: fitted to the width at the bottom,
-/// with the canvas colour filling the rest so there's no seam.
+/// A dark painting fitted to the width at the bottom, with its own background
+/// colour filling the rest so there's no seam.
 struct JoinBackdrop: View {
+    var imageName = "JoinPainting"      // stacked books (join)
+    var canvasHex = "101012"            // sampled from the painting's background
+
+    /// Three books on a shelf, for the start-a-club page.
+    static let start = JoinBackdrop(imageName: "StartPainting", canvasHex: "17150F")
+
     var body: some View {
-        let canvas = Color(hex: "101012")
+        let canvas = Color(hex: canvasHex)
         ZStack(alignment: .bottom) {
             canvas
-            Image("JoinPainting")
+            Image(imageName)
                 .resizable()
                 .scaledToFit()
                 .overlay(alignment: .top) {
