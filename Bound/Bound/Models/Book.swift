@@ -15,6 +15,8 @@ final class Book {
     var addedAt: Date
     /// Row id in Supabase `user_books`; nil until the first push.
     var remoteID: UUID?
+    /// Row id in the shared `books` catalog. Club notes hang off this.
+    var catalogID: UUID?
     /// What we last sent or received, so we only push real changes.
     var syncedFingerprint: String?
 

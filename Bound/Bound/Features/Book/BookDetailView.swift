@@ -66,6 +66,7 @@ struct BookDetailView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingLog) { LogPagesSheet(book: book) }
         .sheet(isPresented: $showingWrite) { WriteNoteView(book: book) }
+        .task { await ShelfSync.shared.pullNotes() }
         .animation(.easeInOut(duration: 0.25), value: revealAll)
         .paperMenu(isPresented: $showMenu) { menuSections }
     }

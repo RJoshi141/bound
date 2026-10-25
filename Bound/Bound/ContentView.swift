@@ -7,6 +7,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var context
     @State private var auth = AuthStore()
     @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = false
+    @AppStorage(AppKeys.clubID) private var clubID = ""
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     // AppStorage writes don't carry withAnimation, so mirror it into State and animate that
@@ -35,7 +36,7 @@ struct ContentView: View {
         .task { SampleData.seedIfNeeded(context, includeBooks: !hasJoined) }
         .task { await auth.start() }      // restores the saved session, then listens
         // shelves follow whoever is signed in
-        .task(id: auth.userID) {
+        .task(id: "\(auth.userID?.uuidString ?? "")|\(clubID)") {
             if let userID = auth.userID {
                 await ShelfSync.shared.start(context: context, userID: userID)
             } else {

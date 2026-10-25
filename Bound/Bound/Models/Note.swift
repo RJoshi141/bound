@@ -13,6 +13,9 @@ final class Note {
     var discussAtMeetup: Bool
     var containsSpoilers: Bool
     var book: Book?
+    /// Row id in Supabase `notes`; nil until posted.
+    var remoteID: UUID?
+    var authorID: UUID?
 
     init(
         authorName: String,
