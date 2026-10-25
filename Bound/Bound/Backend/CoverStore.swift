@@ -6,8 +6,7 @@ import SwiftUI
 import UIKit
 
 /// Fetches real covers from Open Library and tints each spine to match its cover.
-/// (No open database has spine photos, so the spine borrows the colour along the cover's left edge,
-/// which is where the cover wraps round to the spine on most editions.)
+/// (No open database has spine photos, so the spine borrows the colour along the cover's right edge.)
 @MainActor
 final class CoverStore {
     static let shared = CoverStore()
@@ -15,6 +14,7 @@ final class CoverStore {
 
     /// Finds covers for any books that don't have one yet. Safe to call often.
     func fill(_ books: [Book]) async {
+        await retintFromRightEdgeOnce(books)
         for book in books where book.coverData == nil && !book.coverLookupDone {
             guard !inFlight.contains(book.persistentModelID) else { continue }
             inFlight.insert(book.persistentModelID)
@@ -43,13 +43,25 @@ final class CoverStore {
         }
     }
 
-    /// Average colour of the cover's left edge, nudged so gilt and the title still read on it.
+    /// Spines used to come from the left edge. Re-tint covers we already have, one time.
+    private func retintFromRightEdgeOnce(_ books: [Book]) async {
+        let key = "spinesFromRightEdge"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+        for book in books {
+            guard let data = book.coverData else { continue }
+            let hex = await Task.detached { Self.spineHex(from: data) }.value
+            if let hex, !book.isDeleted { book.spineHex = hex }
+        }
+        UserDefaults.standard.set(true, forKey: key)
+    }
+
+    /// Average colour of the cover's right edge, nudged so gilt and the title still read on it.
     nonisolated static func spineHex(from data: Data) -> String? {
         guard let image = CIImage(data: data) else { return nil }
         let extent = image.extent
         let filter = CIFilter.areaAverage()
         filter.inputImage = image
-        filter.extent = CGRect(x: extent.minX, y: extent.minY, width: extent.width * 0.1, height: extent.height)
+        filter.extent = CGRect(x: extent.maxX - extent.width * 0.1, y: extent.minY, width: extent.width * 0.1, height: extent.height)
         guard let output = filter.outputImage else { return nil }
 
         var pixel = [UInt8](repeating: 0, count: 4)
