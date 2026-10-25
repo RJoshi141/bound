@@ -62,14 +62,16 @@ struct PrimaryButtonStyle: ButtonStyle {
 
 /// Big outline button: ink rule with a second hairline just inside.
 struct SecondaryButtonStyle: ButtonStyle {
+    var color: Color = Theme.Colors.ink      // pass cream when it sits on a dark image
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(Theme.Fonts.letterpress(21))
             .tracking(1.5)
-            .foregroundStyle(Theme.Colors.ink)
+            .foregroundStyle(color)
             .frame(maxWidth: .infinity, minHeight: 56)
-            .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
-            .overlay(Rectangle().inset(by: 4).stroke(Theme.Colors.ink, lineWidth: 0.75))
+            .overlay(Rectangle().stroke(color, lineWidth: 1.5))
+            .overlay(Rectangle().inset(by: 4).stroke(color, lineWidth: 0.75))
             .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
@@ -373,5 +375,27 @@ extension View {
             }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isPresented.wrappedValue)
+    }
+}
+
+
+/// A small painting in a gilt frame, like one hung in a reading room.
+struct FramedPainting: View {
+    let name: String
+    var width: CGFloat = 118
+
+    var body: some View {
+        Image(name)
+            .resizable()
+            .scaledToFill()
+            .frame(width: width, height: width * 1.45)
+            .clipped()
+            .overlay(Rectangle().stroke(.black.opacity(0.35), lineWidth: 1))
+            .padding(8)
+            .background(Theme.Colors.gilt)
+            .overlay(Rectangle().inset(by: 3).stroke(Color(hex: "E9D6A8").opacity(0.7), lineWidth: 1))
+            .overlay(Rectangle().stroke(Theme.Colors.oakDark, lineWidth: 1.5))
+            .shadow(color: Theme.Colors.ink.opacity(0.35), radius: 12, y: 8)
+            .accessibilityHidden(true)
     }
 }

@@ -37,6 +37,10 @@ struct JoinClubView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
+                    FramedPainting(name: "JoinPainting")
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 4)
+
                     VStack(alignment: .leading, spacing: 8) {
                         Text(mode == .join ? "Join your club" : "Start a club")
                             .font(Theme.Fonts.display(44))
