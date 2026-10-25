@@ -34,9 +34,8 @@ struct NoteCard: View {
         .padding(.horizontal, 14)
         .background(ruledPaper)
         .clipShape(RoundedRectangle(cornerRadius: 4))
-        .shadow(color: Theme.Colors.inkFixed.opacity(0.35), radius: 8, y: 5)
+        .shadow(color: Theme.Colors.ink.opacity(0.1), radius: 8, y: 5)
         .rotationEffect(.degrees(tilt))
-        .environment(\.colorScheme, .light)
     }
 
     // index-card ruling: blue lines + one red margin line

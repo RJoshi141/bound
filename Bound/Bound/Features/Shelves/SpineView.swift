@@ -11,7 +11,7 @@ struct SpineView: View {
 
     var body: some View {
         let size = book.spineSize
-        let titleColor = Color.isLight(hex: book.spineHex) ? Theme.Colors.inkFixed : Theme.Colors.paperFixed
+        let titleColor = Color.isLight(hex: book.spineHex) ? Theme.Colors.ink : Theme.Colors.paper
 
         Button(action: action) {
             ZStack {

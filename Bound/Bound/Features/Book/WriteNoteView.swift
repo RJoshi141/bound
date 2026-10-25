@@ -112,7 +112,6 @@ struct WriteNoteView: View {
             }
         }
         .paperBackground()
-        .environment(\.colorScheme, .light)     // sheets are paper
         .onChange(of: text) { _, new in
             if new.count > 500 { text = String(new.prefix(500)) }
         }

@@ -88,7 +88,6 @@ struct AddBookView: View {
             .scrollContentBackground(.hidden)
         }
         .paperBackground()
-        .environment(\.colorScheme, .light)     // sheets are paper
         .sheet(item: $picked) { book in
             addSheet(for: book)
         }

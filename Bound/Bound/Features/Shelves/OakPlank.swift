@@ -21,7 +21,7 @@ struct OakPlank: View {
                 .frame(height: 6)
         }
         .clipShape(RoundedRectangle(cornerRadius: 2))
-        .shadow(color: Theme.Colors.inkFixed.opacity(0.35), radius: 6, y: 5)
+        .shadow(color: Theme.Colors.ink.opacity(0.35), radius: 6, y: 5)
         .accessibilityHidden(true)
     }
 }

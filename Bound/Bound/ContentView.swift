@@ -24,12 +24,11 @@ struct ContentView: View {
             }
         }
         // paper all the way to the screen edges, under everything, so no white ever peeks through
-        .background { Mahogany(deep: true) }
+        .background { Theme.Colors.paper.ignoresSafeArea() }
         .onChange(of: hasJoined) { _, joined in
             withAnimation(joined ? .tear : .easeInOut(duration: 0.3)) { showApp = joined }
         }
-        // Dark scheme = mahogany surfaces + light status bar. Cards and sheets opt back into light.
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)       // paper look is light-only for now
         .task { SampleData.seedIfNeeded(context) }
     }
 }

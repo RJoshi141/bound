@@ -37,8 +37,7 @@ struct BookSlip: View {
         .padding(14)
         .background(Theme.Colors.card, in: RoundedRectangle(cornerRadius: 8))
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.Colors.line))
-        .shadow(color: Theme.Colors.inkFixed.opacity(0.4), radius: 18, y: 12)
-        .environment(\.colorScheme, .light)
+        .shadow(color: Theme.Colors.ink.opacity(0.25), radius: 18, y: 12)
     }
 }
 

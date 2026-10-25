@@ -192,7 +192,6 @@ struct MeetupView: View {
                     .background(Theme.Colors.card)
                     .clipShape(Rectangle())
                     .overlay(Rectangle().stroke(pick.isMyVote ? Theme.Colors.forest : Theme.Colors.line, lineWidth: 1.5))
-                    .environment(\.colorScheme, .light)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(pick.title), \(pick.total) votes")
@@ -295,8 +294,6 @@ struct TicketCard: View {
                     .transition(.scale(scale: 1.6).combined(with: .opacity))
             }
         }
-        .shadow(color: Theme.Colors.inkFixed.opacity(0.35), radius: 14, y: 10)
-        .environment(\.colorScheme, .light)
     }
 }
 
@@ -309,10 +306,9 @@ struct Perforation: View {
                 .frame(height: 1)
                 .padding(.horizontal, 16)
             HStack {
-                // notches show the wood behind the ticket
-                Circle().fill(Theme.Colors.mahogany).frame(width: 22, height: 22).offset(x: -11)
+                Circle().fill(Theme.Colors.paper).frame(width: 22, height: 22).offset(x: -11)
                 Spacer()
-                Circle().fill(Theme.Colors.mahogany).frame(width: 22, height: 22).offset(x: 11)
+                Circle().fill(Theme.Colors.paper).frame(width: 22, height: 22).offset(x: 11)
             }
         }
         .frame(height: 22)
