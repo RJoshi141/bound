@@ -5,6 +5,7 @@ import SwiftData
 /// Root: onboarding until you've joined a club, then the tabs. The tear sheet sits on top of both.
 struct ContentView: View {
     @Environment(\.modelContext) private var context
+    @State private var auth = AuthStore()
     @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     // AppStorage writes don't carry withAnimation, so mirror it into State and animate that
@@ -29,7 +30,9 @@ struct ContentView: View {
             withAnimation(joined ? .tear : .easeInOut(duration: 0.3)) { showApp = joined }
         }
         .preferredColorScheme(.light)       // paper look is light-only for now
+        .environment(auth)
         .task { SampleData.seedIfNeeded(context) }
+        .task { await auth.start() }      // restores the saved session, then listens
     }
 }
 
@@ -39,6 +42,8 @@ enum AppKeys {
     static let clubName = "clubName"
     static let isHost = "isHost"
     static let readingGoal = "readingGoal"
+    static let clubID = "clubID"
+    static let inviteCode = "inviteCode"
 }
 
 #Preview {

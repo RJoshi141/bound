@@ -12,3 +12,6 @@ xcuserdata/
 
 # macOS
 .DS_Store
+
+# Supabase keys (local only)
+Bound/Bound/Backend/Secrets.swift

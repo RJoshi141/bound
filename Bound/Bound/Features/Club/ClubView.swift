@@ -6,6 +6,7 @@ struct ClubView: View {
     @Environment(\.modelContext) private var context
     @AppStorage(AppKeys.clubName) private var clubName = "Tuesday Night Readers"
     @AppStorage(AppKeys.memberName) private var memberName = ""
+    @AppStorage(AppKeys.inviteCode) private var inviteCode = ""
 
     @Query(sort: \ClubMember.booksRead, order: .reverse) private var members: [ClubMember]
     @Query(sort: \LedgerEntry.month, order: .reverse) private var ledger: [LedgerEntry]
@@ -45,7 +46,7 @@ struct ClubView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
-            ShareLink(item: "Join \(clubName) on Bound with code TNR24K") {
+            ShareLink(item: "Join \(clubName) on Bound with invite code \(inviteCode.isEmpty ? "TNR24K" : inviteCode)") {
                 Image(systemName: "person.badge.plus")
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.Colors.ink)
