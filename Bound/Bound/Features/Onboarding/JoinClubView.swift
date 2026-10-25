@@ -9,6 +9,9 @@ struct JoinClubView: View {
     enum Mode { case join, start }
     enum Phase { case details, code }
 
+    /// Must match Supabase → Authentication → Sign In / Providers → Email → "Email OTP Length".
+    static let signInCodeLength = 8
+
     let mode: Mode
     let onBack: () -> Void
 
@@ -129,13 +132,13 @@ struct JoinClubView: View {
         VStack(alignment: .leading, spacing: 22) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Check your email").font(Theme.Fonts.display(44))
-                Text("We sent a 6-digit sign-in code to \(trimmedEmail).")
+                Text("We sent a \(Self.signInCodeLength)-digit sign-in code to \(trimmedEmail).")
                     .font(Theme.Fonts.body(15))
                     .foregroundStyle(Theme.Colors.card.opacity(0.8))
             }
             VStack(alignment: .leading, spacing: 8) {
                 Text("Sign-in code").font(Theme.Fonts.body(13, weight: .semibold))
-                CodeBoxes(text: $otp, focused: $otpFocused, allowLetters: false)
+                CodeBoxes(text: $otp, focused: $otpFocused, allowLetters: false, length: Self.signInCodeLength)
             }
             Button("Resend code") { Task { await sendCode() } }
                 .buttonStyle(SmallButtonStyle(color: Theme.Colors.card))
@@ -172,7 +175,7 @@ struct JoinClubView: View {
     }
 
     private var primaryEnabled: Bool {
-        phase == .details ? detailsReady : otp.count == 6
+        phase == .details ? detailsReady : otp.count == Self.signInCodeLength
     }
 
     private func primaryAction() {
@@ -232,7 +235,7 @@ struct JoinClubView: View {
     }
 }
 
-/// Six boxes backed by one hidden text field. Letters + digits for invite codes, digits for sign-in codes.
+/// A row of boxes backed by one hidden text field. Letters + digits for invite codes, digits for sign-in codes.
 struct CodeBoxes: View {
     @Binding var text: String
     var focused: FocusState<Bool>.Binding
@@ -254,14 +257,14 @@ struct CodeBoxes: View {
                 }
                 .accessibilityLabel(allowLetters ? "Invite code" : "Sign-in code")
 
-            HStack(spacing: 8) {
+            HStack(spacing: length > 6 ? 6 : 8) {
                 ForEach(0..<length, id: \.self) { index in
                     let chars = Array(text)
                     let isCurrent = index == chars.count && focused.wrappedValue
                     Text(index < chars.count ? String(chars[index]) : "")
-                        .font(Theme.Fonts.mono(24, medium: true))
+                        .font(Theme.Fonts.mono(length > 6 ? 20 : 24, medium: true))
                         .foregroundStyle(Theme.Colors.ink)
-                        .frame(maxWidth: .infinity, minHeight: 60)
+                        .frame(maxWidth: .infinity, minHeight: length > 6 ? 52 : 60)
                         .background(Theme.Colors.card)
                         .overlay(
                             Rectangle()
