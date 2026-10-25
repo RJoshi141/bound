@@ -12,6 +12,8 @@ final class ClubMember {
     var joinedAt: Date
     /// Their profile id in Supabase.
     var remoteID: UUID?
+    /// Their chosen silhouette (index into SilhouetteKind), or -1 if they haven't picked one.
+    var silhouette: Int = -1
 
     init(name: String, colorHex: String, booksRead: Int, status: String, isHost: Bool = false, joinedAt: Date = .now) {
         self.name = name
@@ -23,6 +25,8 @@ final class ClubMember {
     }
 
     var initial: String { String(name.prefix(1)) }
+
+    var silhouetteKind: SilhouetteKind? { SilhouetteKind(rawValue: silhouette) }
 }
 
 /// One line in the club's reading history.

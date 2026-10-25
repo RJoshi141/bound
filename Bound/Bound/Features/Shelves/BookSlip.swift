@@ -8,7 +8,7 @@ struct BookSlip: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            SpineSwatch(hex: book.spineHex, width: 28, height: 64)
+            CoverThumb(book: book, width: 44, height: 64)
 
             VStack(alignment: .leading, spacing: 2) {
                 MonoLabel(book.shelf.title, color: Theme.Colors.oxblood, size: 10)

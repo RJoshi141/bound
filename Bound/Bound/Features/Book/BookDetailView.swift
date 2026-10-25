@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct BookDetailView: View {
     @Bindable var book: Book
@@ -8,6 +9,8 @@ struct BookDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Query private var members: [ClubMember]
+    @AppStorage(AppKeys.memberName) private var memberName = ""
+    @AppStorage(AppKeys.userID) private var myUserID = ""
 
     enum Pane: String, CaseIterable { case notes = "Club notes", about = "About" }
     @State private var pane: Pane = .notes
@@ -189,7 +192,8 @@ struct BookDetailView: View {
                     .foregroundStyle(Theme.Colors.inkMuted)
             }
             ForEach(Array(visibleNotes.enumerated()), id: \.element.id) { index, note in
-                NoteCard(note: note, tilt: [0, -0.6, 0.5][index % 3], memberHex: hex(for: note.authorName))
+                NoteCard(note: note, tilt: [0, -0.6, 0.5][index % 3], memberHex: author(of: note)?.colorHex ?? Theme.Spine.forest,
+                         memberKind: author(of: note)?.silhouetteKind, isMine: isMine(note))
             }
             if foldedCount > 0 {
                 Button {
@@ -235,17 +239,43 @@ struct BookDetailView: View {
         .overlay(alignment: .bottom) { Rectangle().fill(Theme.Colors.line).frame(height: 1) }
     }
 
-    private func hex(for name: String) -> String {
-        members.first { $0.name == name }?.colorHex ?? Theme.Spine.forest
+    private func author(of note: Note) -> ClubMember? {
+        if let id = note.authorID, let match = members.first(where: { $0.remoteID == id }) { return match }
+        return members.first { $0.name == note.authorName }
+    }
+
+    private func isMine(_ note: Note) -> Bool {
+        if let id = note.authorID { return id.uuidString == myUserID }
+        return note.authorName == "You" || (!memberName.isEmpty && note.authorName == memberName)
     }
 }
 
-/// Typographic bookcloth cover with a gilt double rule.
+/// The real cover when Open Library has one; otherwise typographic bookcloth with a gilt double rule.
 struct BookCover: View {
     let book: Book
     var width: CGFloat = 122
 
     var body: some View {
+        if let data = book.coverData, let image = UIImage(data: data) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: width, height: width * 1.5)
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 2, bottomLeadingRadius: 2, bottomTrailingRadius: 5, topTrailingRadius: 5))
+                .overlay(alignment: .leading) {
+                    // hinge shadow so it reads as a book, not a photo
+                    LinearGradient(colors: [.black.opacity(0.28), .black.opacity(0.0)], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: 10)
+                }
+                .shadow(color: Theme.Colors.ink.opacity(0.35), radius: 12, y: 10)
+                .accessibilityHidden(true)
+        } else {
+            clothCover
+        }
+    }
+
+    @ViewBuilder
+    private var clothCover: some View {
         let textColor = Color.isLight(hex: book.spineHex) ? Theme.Colors.ink : Color(hex: "E9D6A8")
         ZStack {
             UnevenRoundedRectangle(topLeadingRadius: 2, bottomLeadingRadius: 2, bottomTrailingRadius: 6, topTrailingRadius: 6)

@@ -86,7 +86,7 @@ final class ClubSync {
             pullAgain = false
             do {
                 let members: [RemoteMember] = try await supabase.from("club_members")
-                    .select("user_id, role, joined_at, profile:profiles(display_name, avatar_hex)")
+                    .select("user_id, role, joined_at, profile:profiles(display_name, avatar_hex, silhouette)")
                     .eq("club_id", value: clubID)
                     .execute().value
 
@@ -150,7 +150,11 @@ final class ClubSync {
 
     private func applyMembers(_ rows: [RemoteMember], shelves: [RemoteMemberBook], me: UUID, in context: ModelContext) {
         if let mine = rows.first(where: { $0.userID == me }) {
-            UserDefaults.standard.set(mine.role == "host", forKey: AppKeys.isHost)
+            let defaults = UserDefaults.standard
+            defaults.set(mine.role == "host", forKey: AppKeys.isHost)
+            // your portrait follows you to a new phone
+            if let pick = mine.profile?.silhouette { defaults.set(pick, forKey: AppKeys.mySilhouette) }
+            if let hex = mine.profile?.avatarHex { defaults.set(hex, forKey: AppKeys.myAvatarHex) }
         }
         let others = rows.filter { $0.userID != me }
         let local = (try? context.fetch(FetchDescriptor<ClubMember>())) ?? []
@@ -167,6 +171,7 @@ final class ClubSync {
             let name = row.profile?.displayName ?? ""
             member.name = name.isEmpty ? "A member" : name
             member.colorHex = Self.colorHex(for: row)
+            member.silhouette = row.profile?.silhouette ?? -1
             member.isHost = row.role == "host"
             member.joinedAt = row.joinedAt
 
@@ -276,9 +281,9 @@ final class ClubSync {
     private static let palette = [Theme.Spine.rust, Theme.Spine.forest, Theme.Spine.navy, Theme.Spine.plum,
                                   Theme.Spine.olive, Theme.Spine.mustard, Theme.Spine.oxblood]
 
-    /// Everyone starts on the default profile colour, so give each person their own from their id.
+    /// Their chosen colour, or one picked from their id until they choose.
     private static func colorHex(for row: RemoteMember) -> String {
-        if let hex = row.profile?.avatarHex, hex != "2F4A35" { return hex }
+        if let hex = row.profile?.avatarHex, !hex.isEmpty { return hex }
         let sum = row.userID.uuidString.unicodeScalars.reduce(0) { $0 + Int($1.value) }
         return palette[sum % palette.count]
     }
@@ -357,7 +362,9 @@ nonisolated struct RemoteMember: Decodable, Sendable {
     nonisolated struct Profile: Decodable, Sendable {
         let displayName: String?
         let avatarHex: String?
+        let silhouette: Int?
         enum CodingKeys: String, CodingKey {
+            case silhouette
             case displayName = "display_name"
             case avatarHex = "avatar_hex"
         }

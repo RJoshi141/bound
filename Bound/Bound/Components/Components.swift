@@ -172,13 +172,14 @@ struct Avatar: View {
     let name: String
     let hex: String
     var size: CGFloat = 34          // height; the oval is a little narrower
+    var kind: SilhouetteKind? = nil // their pick; nil falls back to one chosen from the name
 
     var body: some View {
         let width = size * 0.82
         ZStack {
             Ellipse().fill(Theme.Colors.card)
             Ellipse().fill(Color(hex: hex).opacity(0.3))
-            SilhouetteView(kind: .forName(name))
+            SilhouetteView(kind: kind ?? .forName(name))
                 .foregroundStyle(Theme.Colors.ink)
                 .frame(width: width * 0.94, height: size * 0.94)
                 .offset(y: size * 0.06)

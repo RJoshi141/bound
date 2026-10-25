@@ -6,10 +6,16 @@ struct NoteCard: View {
     let note: Note
     var tilt: Double = 0
     var memberHex: String = Theme.Spine.olive
+    var memberKind: SilhouetteKind? = nil
+    var isMine = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Avatar(name: note.authorName, hex: memberHex, size: 36)
+            if isMine {
+                MyAvatar(size: 36)
+            } else {
+                Avatar(name: note.authorName, hex: memberHex, size: 36, kind: memberKind)
+            }
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {

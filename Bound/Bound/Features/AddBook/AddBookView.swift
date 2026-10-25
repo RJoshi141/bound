@@ -228,6 +228,7 @@ struct AddBookView: View {
             spineHex: Catalog.spineHex(for: item.title)
         )
         book.openLibraryKey = item.openLibraryKey
+        book.coverID = item.coverID
         if shelf == .finished { book.currentPage = pages }
         context.insert(book)
         picked = nil

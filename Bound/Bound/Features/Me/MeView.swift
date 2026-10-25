@@ -14,6 +14,7 @@ struct MeView: View {
 
     @State private var selected: Book?
     @State private var notificationsOn = true
+    @State private var showAvatarPicker = false
 
     private var name: String { memberName.isEmpty ? "You" : memberName }
     private var finished: [Book] { books.filter { $0.shelf == .finished } }
@@ -33,13 +34,31 @@ struct MeView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
         }
+        .onTapGesture { selected = nil }        // tap anywhere off a book to put it back
         .paperBackground()
         .animation(.spring(response: 0.35, dampingFraction: 0.78), value: selected?.id)
+        .sheet(isPresented: $showAvatarPicker) {
+            AvatarPicker()
+                .presentationDetents([.large])
+        }
     }
 
     private var header: some View {
         HStack(spacing: 16) {
-            Avatar(name: name, hex: Theme.Spine.forest, size: 84)
+            Button {
+                showAvatarPicker = true
+            } label: {
+                MyAvatar(size: 84)
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Theme.Colors.card)
+                            .frame(width: 24, height: 24)
+                            .background(Theme.Colors.ink, in: Circle())
+                    }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Change your portrait")
             VStack(alignment: .leading, spacing: 2) {
                 Text(name).font(Theme.Fonts.display(40))
                 Text("Member of \(clubName)").font(Theme.Fonts.body(14)).foregroundStyle(Theme.Colors.inkMuted)

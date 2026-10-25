@@ -6,6 +6,17 @@ import SwiftUI
 enum SilhouetteKind: Int, CaseIterable {
     case topHat, updo, featherHat, bowler, bonnet, curls
 
+    var title: String {
+        switch self {
+        case .topHat: "Top hat"
+        case .updo: "Updo"
+        case .featherHat: "Feather hat"
+        case .bowler: "Bowler"
+        case .bonnet: "Bonnet"
+        case .curls: "Curls"
+        }
+    }
+
     /// Same person always gets the same silhouette.
     static func forName(_ name: String) -> SilhouetteKind {
         let seed = name.lowercased().unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0x7FFF_FFFF }

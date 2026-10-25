@@ -39,6 +39,32 @@ enum OpenLibrary {
     }
 }
 
+extension OpenLibrary {
+    /// Best match for a book we already know by title + author (for books added before search, or a clubmate's).
+    static func lookup(title: String, author: String) async throws -> (key: String, coverID: Int?)? {
+        var components = URLComponents(string: "https://openlibrary.org/search.json")!
+        components.queryItems = [
+            URLQueryItem(name: "title", value: title),
+            URLQueryItem(name: "author", value: author),
+            URLQueryItem(name: "fields", value: "key,title,author_name,first_publish_year,number_of_pages_median,cover_i"),
+            URLQueryItem(name: "limit", value: "1"),
+        ]
+        var request = URLRequest(url: components.url!)
+        request.setValue("Bound/1.0 (iOS book club app)", forHTTPHeaderField: "User-Agent")
+        let (data, _) = try await URLSession.shared.data(for: request)
+        guard let doc = try JSONDecoder().decode(OpenLibraryPage.self, from: data).docs.first else { return nil }
+        return (doc.key.replacingOccurrences(of: "/works/", with: ""), doc.coverID)
+    }
+
+    /// The cover image. `default=false` makes Open Library 404 instead of sending a blank.
+    static func coverData(id: Int) async throws -> Data? {
+        guard let url = URL(string: "https://covers.openlibrary.org/b/id/\(id)-L.jpg?default=false") else { return nil }
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard (response as? HTTPURLResponse)?.statusCode == 200, data.count > 1_000 else { return nil }
+        return data
+    }
+}
+
 nonisolated struct OpenLibraryPage: Decodable, Sendable {
     let docs: [OpenLibraryDoc]
 }

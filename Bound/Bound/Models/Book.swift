@@ -19,6 +19,11 @@ final class Book {
     var catalogID: UUID?
     /// Open Library work key ("OL45804W"), when the book came from search.
     var openLibraryKey: String?
+    /// Open Library cover id, and the downloaded cover itself (kept on disk, outside the database).
+    var coverID: Int?
+    @Attribute(.externalStorage) var coverData: Data?
+    /// We've looked for a cover once; don't keep asking for books Open Library doesn't have.
+    var coverLookupDone: Bool = false
     /// What we last sent or received, so we only push real changes.
     var syncedFingerprint: String?
 

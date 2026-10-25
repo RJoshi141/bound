@@ -21,6 +21,15 @@ struct MembershipRecord: Decodable, Sendable {
     let club: ClubRecord
 }
 
+nonisolated struct AvatarPatch: Encodable, Sendable {
+    let silhouette: Int
+    let avatarHex: String
+    enum CodingKeys: String, CodingKey {
+        case silhouette
+        case avatarHex = "avatar_hex"
+    }
+}
+
 private struct NameRecord: Decodable, Sendable {
     let displayName: String?
     enum CodingKeys: String, CodingKey { case displayName = "display_name" }
@@ -73,6 +82,14 @@ enum ClubService {
             .execute()
             .value
         return rows.first
+    }
+
+    /// Your portrait: which silhouette and which colour.
+    static func setAvatar(silhouette: Int, hex: String, for userID: UUID) async throws {
+        try await supabase.from("profiles")
+            .update(AvatarPatch(silhouette: silhouette, avatarHex: hex))
+            .eq("id", value: userID)
+            .execute()
     }
 
     static func displayName(for userID: UUID) async throws -> String? {

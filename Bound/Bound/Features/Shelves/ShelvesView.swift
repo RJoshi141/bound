@@ -51,6 +51,7 @@ struct ShelvesView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 130)      // room for the slip
                 }
+                .onTapGesture { selected = nil }        // tap anywhere off a book to put it back
 
                 if let selected {
                     BookSlip(book: selected, onOpen: { open(selected) })
@@ -69,6 +70,8 @@ struct ShelvesView: View {
             .sheet(isPresented: $showingAdd) {
                 AddBookView()
             }
+            // real covers + matching spines, fetched once per book
+            .task(id: books.count) { await CoverStore.shared.fill(books) }
         }
     }
 

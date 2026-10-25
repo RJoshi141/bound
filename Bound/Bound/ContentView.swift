@@ -37,6 +37,7 @@ struct ContentView: View {
         .task { await auth.start() }      // restores the saved session, then listens
         // shelves follow whoever is signed in
         .task(id: "\(auth.userID?.uuidString ?? "")|\(clubID)") {
+            UserDefaults.standard.set(auth.userID?.uuidString ?? "", forKey: AppKeys.userID)
             if let userID = auth.userID {
                 await ShelfSync.shared.start(context: context, userID: userID)
                 await ClubSync.shared.start(context: context, userID: userID)
@@ -64,6 +65,9 @@ enum AppKeys {
     static let clubID = "clubID"
     static let inviteCode = "inviteCode"
     static let clubFoundedYear = "clubFoundedYear"
+    static let userID = "userID"
+    static let mySilhouette = "mySilhouette"     // -1 = not chosen
+    static let myAvatarHex = "myAvatarHex"       // "" = not chosen
 }
 
 #Preview {

@@ -78,19 +78,19 @@ struct ClubView: View {
     private var membersList: some View {
         VStack(alignment: .leading, spacing: 4) {
             SectionTitle(title: "Members")
-            memberRow(initial: memberName.isEmpty ? "You" : memberName, hex: Theme.Spine.forest,
+            memberRow(avatar: AnyView(MyAvatar(size: 44)),
                       name: memberName.isEmpty ? "You" : "\(memberName) (you)", status: "That's you", count: nil)
             ForEach(members) { member in
-                memberRow(initial: member.name, hex: member.colorHex,
+                memberRow(avatar: AnyView(Avatar(name: member.name, hex: member.colorHex, size: 44, kind: member.silhouetteKind)),
                           name: member.isHost ? "\(member.name) · host" : member.name,
                           status: member.status, count: member.booksRead)
             }
         }
     }
 
-    private func memberRow(initial avatarName: String, hex: String, name: String, status: String, count: Int?) -> some View {
+    private func memberRow(avatar: AnyView, name: String, status: String, count: Int?) -> some View {
         HStack(spacing: 12) {
-            Avatar(name: avatarName, hex: hex, size: 44)
+            avatar
             VStack(alignment: .leading, spacing: 2) {
                 Text(name).font(Theme.Fonts.body(15, weight: .semibold))
                 Text(status).font(Theme.Fonts.body(13)).foregroundStyle(Theme.Colors.inkMuted)
