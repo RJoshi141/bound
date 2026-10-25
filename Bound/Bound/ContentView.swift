@@ -1,47 +1,34 @@
+import Foundation
 import SwiftUI
 import SwiftData
 
+/// Root: onboarding until you've joined a club, then the tabs. The tear sheet sits on top of both.
 struct ContentView: View {
     @Environment(\.modelContext) private var context
+    @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = false
+    @State private var tear = TearCoordinator()
 
     var body: some View {
-        TabView {
-            Tab("Shelves", systemImage: "books.vertical") {
-                NavigationStack { ShelvesView() }
+        ZStack {
+            if hasJoined {
+                MainTabsView()
+            } else {
+                OnboardingView()
             }
-            Tab("Meetup", systemImage: "calendar") {
-                ComingSoon(title: "Meetup")
-            }
-            Tab("Club", systemImage: "person.2") {
-                ComingSoon(title: "Club")
-            }
-            Tab("Me", systemImage: "person.crop.circle") {
-                ComingSoon(title: "Me")
-            }
+            TearOverlay()
         }
-        .tint(Theme.Colors.forest)
+        .environment(tear)
+        .preferredColorScheme(.light)       // paper look is light-only for now
         .task { SampleData.seedIfNeeded(context) }
     }
 }
 
-/// Placeholder until each tab gets built.
-private struct ComingSoon: View {
-    let title: String
-
-    var body: some View {
-        ZStack {
-            Theme.Colors.paper.ignoresSafeArea()
-            VStack(spacing: 8) {
-                Text(title).font(Theme.Fonts.display(44))
-                Text("Coming soon")
-                    .font(Theme.Fonts.mono(11))
-                    .tracking(1.2)
-                    .textCase(.uppercase)
-                    .foregroundStyle(Theme.Colors.inkMuted)
-            }
-            .foregroundStyle(Theme.Colors.ink)
-        }
-    }
+enum AppKeys {
+    static let hasJoinedClub = "hasJoinedClub"
+    static let memberName = "memberName"
+    static let clubName = "clubName"
+    static let isHost = "isHost"
+    static let readingGoal = "readingGoal"
 }
 
 #Preview {

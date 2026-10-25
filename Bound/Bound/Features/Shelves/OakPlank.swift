@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 /// The wooden shelf the spines sit on.

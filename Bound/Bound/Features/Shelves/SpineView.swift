@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 /// One book on the shelf. Width follows page count, height varies for rhythm.

@@ -15,7 +15,10 @@ struct BoundApp: App {
     }
 
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Book.self, Note.self, Meetup.self])
+        let schema = Schema([
+            Book.self, Note.self, Meetup.self,
+            ClubMember.self, LedgerEntry.self, Recommendation.self, PickOption.self,
+        ])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {

@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 /// Bound's design tokens. Paper ground, ink text, fall bookcloth accents.
@@ -70,4 +71,10 @@ extension Color {
         let r = Double((value >> 16) & 0xFF), g = Double((value >> 8) & 0xFF), b = Double(value & 0xFF)
         return (0.299 * r + 0.587 * g + 0.114 * b) > 160
     }
+}
+
+extension Theme.Colors {
+    static let tearSheet = Color(hex: "233A2B")   // the tear sheet
+    static let tearMark  = Color(hex: "2E4A38")   // wordmark printed on it
+    static let fibre     = Color(hex: "EFE6D3")   // torn paper fibres
 }

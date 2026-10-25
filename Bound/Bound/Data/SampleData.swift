@@ -1,27 +1,33 @@
 import Foundation
 import SwiftData
 
-/// Classics for first launch and previews. Local only until we add a backend.
+/// Classics + a pretend club for first launch and previews. Local only until we add a backend.
 enum SampleData {
-    @MainActor
+    /// Seeds each kind separately, so older installs pick up new models too.
     static func seedIfNeeded(_ context: ModelContext) {
-        let count = (try? context.fetchCount(FetchDescriptor<Book>())) ?? 0
-        guard count == 0 else { return }
-        insertAll(into: context)
+        if count(Book.self, in: context) == 0 { insertBooks(into: context) }
+        if count(Meetup.self, in: context) == 0 { insertMeetup(into: context) }
+        if count(ClubMember.self, in: context) == 0 { insertClub(into: context) }
     }
 
-    @MainActor
     static let previewContainer: ModelContainer = {
         let container = try! ModelContainer(
-            for: Book.self, Note.self, Meetup.self,
+            for: Book.self, Note.self, Meetup.self, ClubMember.self, LedgerEntry.self, Recommendation.self, PickOption.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
-        insertAll(into: container.mainContext)
+        seedIfNeeded(container.mainContext)
         return container
     }()
 
-    @MainActor
-    private static func insertAll(into context: ModelContext) {
+    private static func count<T: PersistentModel>(_ type: T.Type, in context: ModelContext) -> Int {
+        (try? context.fetchCount(FetchDescriptor<T>())) ?? 0
+    }
+
+    private static func month(_ m: Int, _ y: Int = 2026, day: Int = 1, hour: Int = 0) -> Date {
+        Calendar.current.date(from: DateComponents(year: y, month: m, day: day, hour: hour)) ?? .now
+    }
+
+    private static func insertBooks(into context: ModelContext) {
         typealias S = Theme.Spine
         let books: [Book] = [
             // To read
@@ -54,19 +60,74 @@ enum SampleData {
             context.insert(book)
         }
 
-        if let middlemarch = books.first(where: { $0.title == "Middlemarch" }) {
-            let notes = [
-                Note(authorName: "Priya", text: "Dorothea is me at 19, choosing the wrong man for the right reasons.", rating: 4, page: 200),
-                Note(authorName: "Lucia", text: "Team Mary Garth. Could do with fewer pages of Casaubon.", rating: 3, page: 150),
-                Note(authorName: "Marcus", text: "Read it with a pencil. Nearly every page has a line worth underlining.", rating: 5, page: 880, discussAtMeetup: true),
-            ]
-            notes.forEach { note in
-                context.insert(note)
-                note.book = middlemarch
-            }
+        guard let middlemarch = books.first(where: { $0.title == "Middlemarch" }) else { return }
+        let notes = [
+            Note(authorName: "Priya", text: "Dorothea is me at 19, choosing the wrong man for the right reasons.", rating: 4, page: 200),
+            Note(authorName: "Lucia", text: "Team Mary Garth. Could do with fewer pages of Casaubon.", rating: 3, page: 150),
+            Note(authorName: "Jonah", text: "The chapter epigraphs are doing so much work. Read them twice.", page: 96),
+            Note(authorName: "Marcus", text: "Read it with a pencil. Nearly every page has a line worth underlining.", rating: 5, page: 880, discussAtMeetup: true),
+            Note(authorName: "Amara", text: "That will. I did not see it coming and I'm still mad.", rating: 5, page: 520, containsSpoilers: true),
+            Note(authorName: "Sam", text: "Lydgate's storyline is the one I keep thinking about.", rating: 4, page: 640),
+        ]
+        for note in notes {
+            context.insert(note)
+            note.book = middlemarch
         }
+    }
 
-        let date = Calendar.current.date(from: DateComponents(year: 2026, month: 11, day: 19, hour: 19)) ?? .now
-        context.insert(Meetup(number: 23, date: date, place: "Lucia's place", bookTitle: "Middlemarch", readUpTo: "Books I–IV", rsvp: .going))
+    private static func insertMeetup(into context: ModelContext) {
+        context.insert(Meetup(
+            number: 23,
+            date: month(11, day: 19, hour: 19),
+            place: "Lucia's place",
+            address: "24th St, Mission",
+            bookTitle: "Middlemarch",
+            bookAuthor: "George Eliot",
+            spineHex: Theme.Spine.oxblood,
+            readUpTo: "Books I–IV",
+            rsvp: .going,
+            bringing: "Marcus → snacks, Priya → wine",
+            goingCount: 4,
+            maybeCount: 2
+        ))
+    }
+
+    private static func insertClub(into context: ModelContext) {
+        typealias S = Theme.Spine
+        let members = [
+            ClubMember(name: "Lucia", colorHex: S.rust, booksRead: 19, status: "Middlemarch · p. 150", isHost: true),
+            ClubMember(name: "Priya", colorHex: S.forest, booksRead: 31, status: "Middlemarch · p. 200"),
+            ClubMember(name: "Marcus", colorHex: S.navy, booksRead: 48, status: "Finished Middlemarch"),
+            ClubMember(name: "Amara", colorHex: S.plum, booksRead: 27, status: "Middlemarch · p. 520"),
+            ClubMember(name: "Jonah", colorHex: S.olive, booksRead: 12, status: "Middlemarch · p. 96"),
+            ClubMember(name: "Sam", colorHex: S.mustard, booksRead: 22, status: "Middlemarch · p. 640"),
+        ]
+        members.forEach { context.insert($0) }
+
+        let ledger = [
+            LedgerEntry(month: month(10), title: "Mrs Dalloway", author: "Virginia Woolf", clubRating: 3.9, myRating: 4, spineHex: S.cream),
+            LedgerEntry(month: month(9), title: "Moby-Dick", author: "Herman Melville", clubRating: 3.4, myRating: 3, spineHex: S.forest),
+            LedgerEntry(month: month(8), title: "Anna Karenina", author: "Leo Tolstoy", clubRating: 4.6, myRating: 5, spineHex: S.oxblood),
+            LedgerEntry(month: month(7), title: "Pride and Prejudice", author: "Jane Austen", clubRating: 4.4, myRating: 5, spineHex: S.rust),
+            LedgerEntry(month: month(6), title: "Great Expectations", author: "Charles Dickens", clubRating: 4.0, spineHex: S.mustard),
+            LedgerEntry(month: month(5), title: "The Age of Innocence", author: "Edith Wharton", clubRating: 4.1, myRating: 4, spineHex: S.plum),
+            LedgerEntry(month: month(4), title: "Dubliners", author: "James Joyce", clubRating: 3.6, myRating: 3, spineHex: S.ink),
+            LedgerEntry(month: month(3), title: "Wuthering Heights", author: "Emily Brontë", clubRating: 4.2, myRating: 5, spineHex: S.navy),
+        ]
+        ledger.forEach { context.insert($0) }
+
+        let recs = [
+            Recommendation(fromName: "Priya", title: "Jane Eyre", author: "Charlotte Brontë", reason: "Because you loved Persuasion", spineHex: S.ink, pageCount: 532),
+            Recommendation(fromName: "Marcus", title: "The Moonstone", author: "Wilkie Collins", reason: "\"A proper page-turner. Trust me.\"", spineHex: "3E5C4C", pageCount: 528),
+            Recommendation(fromName: "Amara", title: "Silas Marner", author: "George Eliot", reason: "More Eliot, a quarter of the length", spineHex: S.cream, pageCount: 183),
+        ]
+        recs.forEach { context.insert($0) }
+
+        let picks = [
+            PickOption(title: "Persuasion", author: "Jane Austen", votes: 4),
+            PickOption(title: "Frankenstein", author: "Mary Shelley", votes: 3),
+            PickOption(title: "Walden", author: "Henry David Thoreau", votes: 1),
+        ]
+        picks.forEach { context.insert($0) }
     }
 }
