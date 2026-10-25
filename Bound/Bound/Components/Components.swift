@@ -134,7 +134,7 @@ struct Chip: View {
             Text(title)
                 .font(Theme.Fonts.letterpress(16))
                 .tracking(1)
-                .foregroundStyle(isOn ? Theme.Colors.paper : Theme.Colors.ink)
+                .foregroundStyle(isOn ? Theme.Colors.inverse : Theme.Colors.ink)
                 .padding(.horizontal, 14)
                 .frame(height: 36)
                 .background(isOn ? Theme.Colors.ink : .clear)
@@ -179,7 +179,7 @@ struct Avatar: View {
             Ellipse().fill(Theme.Colors.card)
             Ellipse().fill(Color(hex: hex).opacity(0.3))
             SilhouetteView(kind: .forName(name))
-                .foregroundStyle(Theme.Colors.ink)
+                .foregroundStyle(Theme.Colors.inkFixed)
                 .frame(width: width * 0.94, height: size * 0.94)
                 .offset(y: size * 0.06)
                 .clipShape(Ellipse())
@@ -280,12 +280,13 @@ extension View {
         self
             .background(Theme.Colors.card, in: RoundedRectangle(cornerRadius: radius))
             .overlay(RoundedRectangle(cornerRadius: radius).stroke(Theme.Colors.line))
-            .shadow(color: Theme.Colors.ink.opacity(0.08), radius: 10, y: 6)
+            .shadow(color: Theme.Colors.inkFixed.opacity(0.18), radius: 10, y: 6)
+            .environment(\.colorScheme, .light)      // cards are always paper, even on wood
     }
 
-    /// Full-bleed paper background for a screen.
+    /// Full-bleed screen background: mahogany in the app (dark scheme), paper in sheets (light).
     func paperBackground() -> some View {
-        self.background(Theme.Colors.paper.ignoresSafeArea())
+        self.background { ScreenBackground() }
     }
 }
 
@@ -352,7 +353,8 @@ struct PaperMenu: View {
         .background(Theme.Colors.card)
         .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
         .overlay(Rectangle().inset(by: 4).stroke(Theme.Colors.ink.opacity(0.35), lineWidth: 0.75))
-        .shadow(color: Theme.Colors.ink.opacity(0.22), radius: 18, y: 12)
+        .shadow(color: Theme.Colors.inkFixed.opacity(0.3), radius: 18, y: 12)
+        .environment(\.colorScheme, .light)
     }
 }
 
@@ -396,7 +398,74 @@ struct FramedPainting: View {
             .background(Theme.Colors.gilt)
             .overlay(Rectangle().inset(by: 3).stroke(Color(hex: "E9D6A8").opacity(0.7), lineWidth: 1))
             .overlay(Rectangle().stroke(Theme.Colors.oakDark, lineWidth: 1.5))
-            .shadow(color: Theme.Colors.ink.opacity(0.35), radius: 12, y: 8)
+            .shadow(color: Theme.Colors.inkFixed.opacity(0.35), radius: 12, y: 8)
             .accessibilityHidden(true)
+    }
+}
+
+
+// MARK: - Surfaces
+
+struct ScreenBackground: View {
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        if scheme == .dark {
+            Mahogany()
+        } else {
+            Theme.Colors.paper.ignoresSafeArea()
+        }
+    }
+}
+
+/// Polished mahogany panel: warm red-brown, wavy horizontal grain, soft vignette.
+struct Mahogany: View {
+    var deep = false
+
+    var body: some View {
+        Canvas { context, size in
+            let rect = CGRect(origin: .zero, size: size)
+            let base: [Color] = deep
+                ? [Color(hex: "2A100A"), Color(hex: "38160D"), Color(hex: "260E09")]
+                : [Color(hex: "4A1D12"), Color(hex: "5B2516"), Color(hex: "3C160D")]
+            context.fill(Path(rect), with: .linearGradient(Gradient(colors: base),
+                                                           startPoint: .zero,
+                                                           endPoint: CGPoint(x: size.width * 0.4, y: size.height)))
+
+            // seeded grain so it looks the same every launch
+            var state: UInt64 = 11
+            func random() -> CGFloat {
+                state = state &* 6364136223846793005 &+ 1442695040888963407
+                return CGFloat((state >> 33) % 10_000) / 10_000
+            }
+
+            var y: CGFloat = -10
+            while y < size.height + 10 {
+                var grain = Path()
+                let amplitude = 1.5 + random() * 6
+                let frequency = 0.004 + random() * 0.012
+                let phase = random() * .pi * 2
+                grain.move(to: CGPoint(x: 0, y: y + amplitude * sin(phase)))
+                var x: CGFloat = 8
+                while x <= size.width + 8 {
+                    grain.addLine(to: CGPoint(x: x, y: y + amplitude * sin(x * frequency + phase)))
+                    x += 8
+                }
+                let isDark = random() < 0.62
+                let colour = isDark ? Color.black.opacity(0.08 + random() * 0.16)
+                                    : Color(hex: "C9784A").opacity(0.04 + random() * 0.07)
+                context.stroke(grain, with: .color(colour), lineWidth: 0.5 + random() * 1.8)
+                y += 2 + random() * 7
+            }
+
+            // vignette pulls the eye to the middle
+            context.fill(Path(rect), with: .radialGradient(
+                Gradient(colors: [.clear, .black.opacity(deep ? 0.25 : 0.38)]),
+                center: CGPoint(x: size.width / 2, y: size.height * 0.45),
+                startRadius: size.width * 0.35,
+                endRadius: size.height * 0.85))
+        }
+        .ignoresSafeArea()
+        .accessibilityHidden(true)
     }
 }

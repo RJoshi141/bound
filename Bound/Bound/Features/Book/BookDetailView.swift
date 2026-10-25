@@ -60,7 +60,10 @@ struct BookDetailView: View {
             .buttonStyle(PrimaryButtonStyle())
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(Theme.Colors.paper.shadow(.drop(color: Theme.Colors.ink.opacity(0.08), radius: 8, y: -4)))
+            .background {
+                Mahogany(deep: true)
+                    .overlay(alignment: .top) { Rectangle().fill(Theme.Colors.gilt.opacity(0.6)).frame(height: 1) }
+            }
         }
         .paperBackground()
         .toolbar(.hidden, for: .navigationBar)
@@ -245,7 +248,7 @@ struct BookCover: View {
     var width: CGFloat = 122
 
     var body: some View {
-        let textColor = Color.isLight(hex: book.spineHex) ? Theme.Colors.ink : Color(hex: "E9D6A8")
+        let textColor = Color.isLight(hex: book.spineHex) ? Theme.Colors.inkFixed : Color(hex: "E9D6A8")
         ZStack {
             UnevenRoundedRectangle(topLeadingRadius: 2, bottomLeadingRadius: 2, bottomTrailingRadius: 6, topTrailingRadius: 6)
                 .fill(Color(hex: book.spineHex))
@@ -271,7 +274,7 @@ struct BookCover: View {
             }
         }
         .frame(width: width, height: width * 1.45)
-        .shadow(color: Theme.Colors.ink.opacity(0.35), radius: 12, y: 10)
+        .shadow(color: Theme.Colors.inkFixed.opacity(0.35), radius: 12, y: 10)
         .accessibilityHidden(true)
     }
 }

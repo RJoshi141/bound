@@ -37,8 +37,10 @@ struct OnboardingView: View {
                     .transition(reduceMotion ? .opacity : .revealUnder)
             }
         }
+        .environment(\.colorScheme, .light)
     }
 
+    // (onboarding colours are hand-set for the paintings, keep tokens in their paper values)
     private func go(to next: Step) {
         withAnimation(.tear) { step = next }
     }

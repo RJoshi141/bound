@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 /// Bound's design tokens. Paper ground, ink text, fall bookcloth accents.
 enum Theme {
@@ -7,13 +8,23 @@ enum Theme {
         static let paper     = Color(hex: "F2EADB")   // app background
         static let paperDeep = Color(hex: "E8DDC7")   // fills, inactive chips
         static let card      = Color(hex: "FAF5EA")   // slips, cards
-        static let ink       = Color(hex: "221A14")   // primary text
-        static let inkMuted  = Color(hex: "5E5246")   // secondary text, passes 4.5:1 on paper
-        static let line      = Color(hex: "DCCFB6")   // hairlines
-        static let lineStrong = Color(hex: "A79C88")  // chip outlines
+        // Text + rules flip with the surface: ink on paper, cream on mahogany (dark colour scheme).
+        static let ink       = Color.dynamic(light: "221A14", dark: "F4EBDD")   // primary text
+        static let inkMuted  = Color.dynamic(light: "5E5246", dark: "CDB9A2")   // secondary text, 4.5:1+ on both
+        static let line      = Color.dynamic(light: "DCCFB6", dark: "6A4535")   // hairlines
+        static let lineStrong = Color.dynamic(light: "A79C88", dark: "A07E68")  // chip outlines
+        static let inverse   = Color.dynamic(light: "F2EADB", dark: "2A120C")   // text on an ink fill
+
+        // Never flip: spines, silhouettes, shadows.
+        static let inkFixed   = Color(hex: "221A14")
+        static let paperFixed = Color(hex: "F2EADB")
+
+        // Mahogany
+        static let mahogany     = Color(hex: "4A1D12")
+        static let mahoganyDeep = Color(hex: "2A100A")
 
         static let forest  = Color(hex: "2F4A35")     // primary actions
-        static let oxblood = Color(hex: "8A2C22")     // labels, accents
+        static let oxblood = Color.dynamic(light: "8A2C22", dark: "E3A47E")   // accents; warm apricot on wood
         static let rust    = Color(hex: "B4572A")
         static let mustard = Color(hex: "C69A3A")
         static let olive   = Color(hex: "6F7442")
@@ -84,4 +95,26 @@ extension Color {
 
 extension Theme.Colors {
     static let fibre     = Color(hex: "EFE6D3")   // torn paper fibres
+}
+
+
+extension Color {
+    /// One colour for paper surfaces (light scheme) and one for mahogany (dark scheme).
+    static func dynamic(light: String, dark: String) -> Color {
+        let lightColor = UIColor(hex: light), darkColor = UIColor(hex: dark)
+        return Color(UIColor { $0.userInterfaceStyle == .dark ? darkColor : lightColor })
+    }
+}
+
+extension UIColor {
+    convenience init(hex: String) {
+        var value: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&value)
+        self.init(
+            red: CGFloat((value >> 16) & 0xFF) / 255,
+            green: CGFloat((value >> 8) & 0xFF) / 255,
+            blue: CGFloat(value & 0xFF) / 255,
+            alpha: 1
+        )
+    }
 }

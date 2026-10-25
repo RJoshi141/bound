@@ -120,6 +120,7 @@ struct PlanMeetupView: View {
                             .frame(height: 48)
                             .background(Theme.Colors.card)
                             .overlay(Rectangle().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
+                            .environment(\.colorScheme, .light)
                         Toggle("Rotate host each month", isOn: $rotateHost)
                             .font(Theme.Fonts.body(15))
                             .tint(Theme.Colors.forest)

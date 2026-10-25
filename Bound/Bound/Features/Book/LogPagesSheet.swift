@@ -31,7 +31,8 @@ struct LogPagesSheet: View {
         .padding(.horizontal, 24)
         .padding(.bottom, 20)
         .presentationDetents([.height(320)])
-        .presentationBackground(Theme.Colors.paper)
+        .presentationBackground(Theme.Colors.paperFixed)
+        .environment(\.colorScheme, .light)
         .onAppear { page = Double(book.currentPage) }
     }
 

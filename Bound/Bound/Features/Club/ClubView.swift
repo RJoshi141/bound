@@ -202,7 +202,8 @@ struct LedgerCard: View {
         .foregroundStyle(Theme.Colors.ink)
         .background(Theme.Colors.card)
         .clipShape(RoundedRectangle(cornerRadius: 4))
-        .shadow(color: Theme.Colors.ink.opacity(0.15), radius: 14, y: 10)
+        .shadow(color: Theme.Colors.inkFixed.opacity(0.4), radius: 14, y: 10)
+        .environment(\.colorScheme, .light)
     }
 }
 
