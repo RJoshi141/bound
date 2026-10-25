@@ -78,8 +78,7 @@ struct RevealUnder: ViewModifier, Animatable {
         let settle = phase(progress, from: 0.2, to: 1.0)
         return content
             .scaleEffect(0.96 + 0.04 * settle)
-            // paper behind the shrunken page, so its edges never show the white window
-            .background { Theme.Colors.paper.ignoresSafeArea() }
+            // no background here on purpose: the layer behind (root paper, or the join painting) fills the edges
             .overlay { Color.black.opacity(0.18 * (1 - settle)).ignoresSafeArea().allowsHitTesting(false) }
     }
 }

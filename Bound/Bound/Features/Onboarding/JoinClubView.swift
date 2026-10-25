@@ -86,7 +86,7 @@ struct JoinClubView: View {
                 .padding(.bottom, 16)
         }
         .foregroundStyle(Theme.Colors.card)
-        .background { backdrop }
+        // backdrop lives in OnboardingView so it's full-screen from the first frame of the tear
         .onAppear { if mode == .join { codeFocused = true } }
     }
 
@@ -165,11 +165,22 @@ struct JoinClubView: View {
         .paperCard(radius: 0)
     }
 
-    // Painting of stacked books on black: fitted to the width at the bottom,
-    // with the canvas colour filling the rest so there's no seam.
-    private var backdrop: some View {
+    private func finish() {
+        memberName = name.trimmingCharacters(in: .whitespaces)
+        if mode == .start {
+            clubName = newClubName.trimmingCharacters(in: .whitespaces)
+            isHost = true
+        }
+        hasJoined = true     // ContentView animates the tear
+    }
+}
+
+/// Painting of stacked books on black: fitted to the width at the bottom,
+/// with the canvas colour filling the rest so there's no seam.
+struct JoinBackdrop: View {
+    var body: some View {
         let canvas = Color(hex: "101012")
-        return ZStack(alignment: .bottom) {
+        ZStack(alignment: .bottom) {
             canvas
             Image("JoinPainting")
                 .resizable()
@@ -184,14 +195,5 @@ struct JoinClubView: View {
         }
         .ignoresSafeArea()
         .accessibilityHidden(true)
-    }
-
-    private func finish() {
-        memberName = name.trimmingCharacters(in: .whitespaces)
-        if mode == .start {
-            clubName = newClubName.trimmingCharacters(in: .whitespaces)
-            isHost = true
-        }
-        hasJoined = true     // ContentView animates the tear
     }
 }

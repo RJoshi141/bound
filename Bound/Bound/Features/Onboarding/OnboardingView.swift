@@ -9,6 +9,11 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
+            // join/start backdrop sits underneath from the start, full-screen,
+            // so the tear reveals it with no gaps at the top or bottom
+            JoinBackdrop()
+                .zIndex(-1)
+
             switch step {
             case .welcome:
                 // the start screen tears away, bottom to top, to reveal the next page
