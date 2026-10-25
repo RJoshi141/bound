@@ -4,6 +4,8 @@ import SwiftData
 
 struct WriteNoteView: View {
     @Bindable var book: Book
+    /// Set when editing one of your notes instead of writing a new one.
+    var editing: Note? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @AppStorage(AppKeys.memberName) private var memberName = ""
@@ -14,6 +16,8 @@ struct WriteNoteView: View {
     @State private var tags: Set<String> = []
     @State private var spoilers = false
     @FocusState private var editorFocused: Bool
+    @State private var isSaving = false
+    @State private var errorText: String?
 
     private let quickTags = ["Would recommend", "Slow start", "Tearjerker", "Discuss at meetup"]
     private var canPost: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -25,17 +29,27 @@ struct WriteNoteView: View {
                     .font(Theme.Fonts.letterpress(18))
                     .frame(minHeight: 44)
                 Spacer()
-                Text("Your note").font(Theme.Fonts.body(17, weight: .semibold))
+                Text(editing == nil ? "Your note" : "Edit note").font(Theme.Fonts.body(17, weight: .semibold))
                 Spacer()
-                Button("Post", action: post)
+                Button(editing == nil ? "Post" : "Save") {
+                    if editing == nil { post() } else { Task { await save() } }
+                }
                     .buttonStyle(SmallButtonStyle(filled: true))
-                    .opacity(canPost ? 1 : 0.4)
-                    .disabled(!canPost)
+                    .opacity(canPost && !isSaving ? 1 : 0.4)
+                    .disabled(!canPost || isSaving)
             }
             .foregroundStyle(Theme.Colors.ink)
             .buttonStyle(.plain)
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
+
+            if let errorText {
+                Text(errorText)
+                    .font(Theme.Fonts.body(13))
+                    .foregroundStyle(Theme.Colors.oxblood)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 8)
+            }
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
@@ -115,7 +129,37 @@ struct WriteNoteView: View {
         .onChange(of: text) { _, new in
             if new.count > 500 { text = String(new.prefix(500)) }
         }
-        .onAppear { finished = book.shelf == .finished }
+        .onAppear {
+            if let editing {
+                text = editing.text
+                rating = editing.rating
+                spoilers = editing.containsSpoilers
+                finished = editing.page >= book.pageCount
+                if editing.discussAtMeetup { tags.insert("Discuss at meetup") }
+            } else {
+                finished = book.shelf == .finished
+            }
+        }
+    }
+
+    /// Editing keeps the page you wrote it at, unless you now mark it as written after finishing.
+    private func save() async {
+        guard let editing else { return }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            try await ShelfSync.shared.updateNote(
+                editing,
+                text: text.trimmingCharacters(in: .whitespacesAndNewlines),
+                rating: rating,
+                page: finished ? book.pageCount : min(editing.page, book.pageCount),
+                containsSpoilers: spoilers,
+                discussAtMeetup: tags.contains("Discuss at meetup")
+            )
+            dismiss()
+        } catch {
+            errorText = "Couldn't save your edit. Check your connection and try again."
+        }
     }
 
     private func post() {

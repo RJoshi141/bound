@@ -299,6 +299,34 @@ final class ShelfSync {
         }
     }
 
+    /// Your edit to a note. Not posted yet? It just goes up with the new text later.
+    func updateNote(_ note: Note, text: String, rating: Int?, page: Int, containsSpoilers: Bool, discussAtMeetup: Bool) async throws {
+        if let remoteID = note.remoteID {
+            try await supabase.from("notes")
+                .update(NotePatch(body: text, rating: rating, page: page,
+                                  containsSpoilers: containsSpoilers, discussAtMeetup: discussAtMeetup))
+                .eq("id", value: remoteID)
+                .execute()
+        }
+        guard !note.isDeleted else { return }
+        note.text = text
+        note.rating = rating
+        note.page = page
+        note.containsSpoilers = containsSpoilers
+        note.discussAtMeetup = discussAtMeetup
+        try? context?.save()
+    }
+
+    /// Removes your note for everyone. If the server can't be reached it stays, so it never quietly comes back.
+    func deleteNote(_ note: Note) async throws {
+        if let remoteID = note.remoteID {
+            try await supabase.from("notes").delete().eq("id", value: remoteID).execute()
+        }
+        guard !note.isDeleted, let context = note.modelContext else { return }
+        context.delete(note)
+        try? context.save()
+    }
+
     /// Live: a clubmate posts a note → we pull notes.
     private func subscribeToNotes() async {
         guard let clubID else { return }
@@ -424,6 +452,30 @@ nonisolated struct RemoteNote: Decodable, Sendable {
         case containsSpoilers = "contains_spoilers"
         case discussAtMeetup = "discuss_at_meetup"
         case createdAt = "created_at"
+    }
+}
+
+nonisolated struct NotePatch: Encodable, Sendable {
+    let body: String
+    let rating: Int?
+    let page: Int
+    let containsSpoilers: Bool
+    let discussAtMeetup: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case body, rating, page
+        case containsSpoilers = "contains_spoilers"
+        case discussAtMeetup = "discuss_at_meetup"
+    }
+
+    // send rating as null when cleared, so taking stars away actually sticks
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(body, forKey: .body)
+        try c.encode(rating, forKey: .rating)
+        try c.encode(page, forKey: .page)
+        try c.encode(containsSpoilers, forKey: .containsSpoilers)
+        try c.encode(discussAtMeetup, forKey: .discussAtMeetup)
     }
 }
 

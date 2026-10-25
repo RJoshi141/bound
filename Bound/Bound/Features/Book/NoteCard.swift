@@ -8,6 +8,11 @@ struct NoteCard: View {
     var memberHex: String = Theme.Spine.olive
     var memberKind: SilhouetteKind? = nil
     var isMine = false
+    var onEdit: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
+
+    @State private var showActions = false
+    @State private var confirmingDelete = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -25,6 +30,22 @@ struct NoteCard: View {
                     }
                     Spacer()
                     MonoLabel("p. \(note.page)", size: 10)
+                    if isMine, onEdit != nil {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showActions.toggle()
+                                confirmingDelete = false
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Theme.Colors.inkMuted)
+                                .frame(width: 32, height: 24)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Note options")
+                    }
                 }
                 Text(note.text)
                     .font(Theme.Fonts.body(15))
@@ -34,6 +55,7 @@ struct NoteCard: View {
                 if note.discussAtMeetup {
                     MonoLabel("Discuss at meetup", color: Theme.Colors.forest, size: 10)
                 }
+                if showActions { actions.transition(.opacity.combined(with: .move(edge: .top))) }
             }
         }
         .padding(.vertical, 12)
@@ -42,6 +64,35 @@ struct NoteCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .shadow(color: Theme.Colors.ink.opacity(0.1), radius: 8, y: 5)
         .rotationEffect(.degrees(tilt))
+    }
+
+    /// Inline, on the card itself: Edit · Delete, and a second tap to confirm a delete.
+    private var actions: some View {
+        HStack(spacing: 8) {
+            if confirmingDelete {
+                Text("Delete for everyone?")
+                    .font(Theme.Fonts.body(13, weight: .semibold))
+                    .foregroundStyle(Theme.Colors.oxblood)
+                Spacer()
+                Button("Keep") { withAnimation { confirmingDelete = false } }
+                    .buttonStyle(SmallButtonStyle())
+                Button("Delete") {
+                    showActions = false
+                    onDelete?()
+                }
+                .buttonStyle(SmallButtonStyle(filled: true, color: Theme.Colors.oxblood))
+            } else {
+                Spacer()
+                Button("Edit") {
+                    showActions = false
+                    onEdit?()
+                }
+                .buttonStyle(SmallButtonStyle())
+                Button("Delete") { withAnimation { confirmingDelete = true } }
+                    .buttonStyle(SmallButtonStyle(color: Theme.Colors.oxblood))
+            }
+        }
+        .padding(.top, 4)
     }
 
     // index-card ruling: blue lines + one red margin line

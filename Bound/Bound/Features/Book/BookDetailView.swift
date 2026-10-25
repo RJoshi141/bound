@@ -18,6 +18,8 @@ struct BookDetailView: View {
     @State private var showingLog = false
     @State private var showingWrite = false
     @State private var showMenu = false
+    @State private var editingNote: Note?
+    @State private var noteError: String?
 
     // MARK: spoiler folding
     // A note is safe if it was written at or before your page (or you've finished),
@@ -69,6 +71,7 @@ struct BookDetailView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showingLog) { LogPagesSheet(book: book) }
         .sheet(isPresented: $showingWrite) { WriteNoteView(book: book) }
+        .sheet(item: $editingNote) { note in WriteNoteView(book: book, editing: note) }
         .task { await ShelfSync.shared.pullNotes() }
         .animation(.easeInOut(duration: 0.25), value: revealAll)
         .paperMenu(isPresented: $showMenu) { menuSections }
@@ -193,7 +196,14 @@ struct BookDetailView: View {
             }
             ForEach(Array(visibleNotes.enumerated()), id: \.element.id) { index, note in
                 NoteCard(note: note, tilt: [0, -0.6, 0.5][index % 3], memberHex: author(of: note)?.colorHex ?? Theme.Spine.forest,
-                         memberKind: author(of: note)?.silhouetteKind, isMine: isMine(note))
+                         memberKind: author(of: note)?.silhouetteKind, isMine: isMine(note),
+                         onEdit: { editingNote = note },
+                         onDelete: { delete(note) })
+            }
+            if let noteError {
+                Text(noteError)
+                    .font(Theme.Fonts.body(13))
+                    .foregroundStyle(Theme.Colors.oxblood)
             }
             if foldedCount > 0 {
                 Button {
@@ -237,6 +247,17 @@ struct BookDetailView: View {
         }
         .frame(minHeight: 48)
         .overlay(alignment: .bottom) { Rectangle().fill(Theme.Colors.line).frame(height: 1) }
+    }
+
+    private func delete(_ note: Note) {
+        Task {
+            do {
+                try await ShelfSync.shared.deleteNote(note)
+                noteError = nil
+            } catch {
+                noteError = "Couldn't delete that note. Check your connection and try again."
+            }
+        }
     }
 
     private func author(of note: Note) -> ClubMember? {
