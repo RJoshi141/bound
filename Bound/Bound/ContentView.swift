@@ -7,18 +7,24 @@ struct ContentView: View {
     @Environment(\.modelContext) private var context
     @AppStorage(AppKeys.hasJoinedClub) private var hasJoined = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    // AppStorage writes don't carry withAnimation, so mirror it into State and animate that
+    @State private var showApp = UserDefaults.standard.bool(forKey: AppKeys.hasJoinedClub)
 
     var body: some View {
         ZStack {
-            if hasJoined {
+            if showApp {
                 MainTabsView()
                     .zIndex(0)
+                    .transition(reduceMotion ? .opacity : .revealUnder)
             } else {
                 // the start flow tears away to reveal the app underneath
                 OnboardingView()
                     .zIndex(1)
                     .transition(reduceMotion ? .opacity : .tearAway)
             }
+        }
+        .onChange(of: hasJoined) { _, joined in
+            withAnimation(joined ? .tear : .easeInOut(duration: 0.3)) { showApp = joined }
         }
         .preferredColorScheme(.light)       // paper look is light-only for now
         .task { SampleData.seedIfNeeded(context) }

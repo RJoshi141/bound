@@ -1,64 +1,115 @@
 import Foundation
 import SwiftUI
 
-// The page tear: the outgoing screen rips along its bottom edge and lifts away
-// upward, revealing the new screen underneath. One-way, no sheet coming back.
-// Only used when leaving the start screen.
+// The page tear: a rip runs across the bottom of the outgoing screen, then the
+// page peels up and away (slight curl + tilt), revealing the new screen underneath.
+// One-way. Used when leaving the start screen and when finishing the join flow.
 
 extension Animation {
-    static let tear = Animation.timingCurve(0.65, 0, 0.35, 1, duration: 0.9)
+    /// Gentle in-out over the whole tear; the modifier splits it into rip → peel phases.
+    static let tear = Animation.timingCurve(0.42, 0, 0.25, 1, duration: 1.9)
 }
 
 extension AnyTransition {
-    /// Use on the OUTGOING view, and give it a higher zIndex so it stays on top while it lifts.
+    /// Put on the OUTGOING view, with a higher zIndex so it stays on top while it lifts.
     static var tearAway: AnyTransition {
         .asymmetric(
             insertion: .identity,
             removal: .modifier(active: TearAway(progress: 1), identity: TearAway(progress: 0))
         )
     }
+
+    /// For the screen being revealed underneath: settles up from slightly sunk and dim.
+    static var revealUnder: AnyTransition {
+        .asymmetric(
+            insertion: .modifier(active: RevealUnder(progress: 0), identity: RevealUnder(progress: 1)),
+            removal: .identity
+        )
+    }
+}
+
+/// Maps 0...1 onto a sub-range with smoothstep easing, so phases overlap softly.
+private func phase(_ t: Double, from start: Double, to end: Double) -> Double {
+    let x = min(max((t - start) / (end - start), 0), 1)
+    return x * x * (3 - 2 * x)
 }
 
 struct TearAway: ViewModifier, Animatable {
-    var progress: Double            // 0 = resting, 1 = fully lifted off screen
+    var progress: Double            // 0 = resting, 1 = gone
 
-    // Animatable is what makes SwiftUI tween `progress` frame by frame.
-    // Without it the transition just jumps from 0 to 1 and the page vanishes.
+    // Animatable makes SwiftUI tween progress frame by frame.
     var animatableData: Double {
         get { progress }
         set { progress = newValue }
     }
 
-    private let maxDepth: CGFloat = 44
-
     func body(content: Content) -> some View {
-        // rip opens fast in the first ~10% of the animation, then the page lifts
-        let depth = maxDepth * min(1, progress * 10)
-        let lift = progress          // local copy for the nonisolated visualEffect closure
+        let rip = phase(progress, from: 0.0, to: 0.38)     // rip travels left → right
+        let peel = phase(progress, from: 0.22, to: 1.0)    // page lifts and curls away
 
         return content
-            .mask(TornPage(edgeDepth: depth))
-            .background(TornPage(edgeDepth: depth, fiber: true).fill(Theme.Colors.fibre))
-            .shadow(color: .black.opacity(progress > 0 ? 0.25 : 0), radius: 16, y: 10)
+            // the torn mask, extended past the safe areas so nothing shows white
+            .mask {
+                TornPage(rip: rip).ignoresSafeArea()
+            }
+            // paper fibres along the rip
+            .background {
+                TornPage(rip: rip, fiber: true)
+                    .fill(Theme.Colors.fibre)
+                    .ignoresSafeArea()
+            }
+            .shadow(color: .black.opacity(0.28 * min(rip * 2, 1)), radius: 10 + 20 * peel, y: 8 + 16 * peel)
             .visualEffect { view, proxy in
-                view.offset(y: -lift * (proxy.size.height + 80))
+                view
+                    // curl: the torn bottom tips toward you as it lifts
+                    .rotation3DEffect(.degrees(16 * peel), axis: (x: 1, y: 0, z: 0), anchor: .top, perspective: 0.55)
+                    // a little sideways drift, like a hand pulling from one corner
+                    .rotationEffect(.degrees(-3.5 * peel), anchor: .topLeading)
+                    .offset(x: 18 * peel, y: -peel * (proxy.size.height + 260))
             }
     }
 }
 
-/// A full page whose bottom edge is torn. `fiber` draws the slightly deeper fibre layer.
+struct RevealUnder: ViewModifier, Animatable {
+    var progress: Double            // 0 = sunk/dim, 1 = settled
+
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let settle = phase(progress, from: 0.2, to: 1.0)
+        return content
+            .scaleEffect(0.96 + 0.04 * settle)
+            .overlay { Color.black.opacity(0.18 * (1 - settle)).ignoresSafeArea().allowsHitTesting(false) }
+    }
+}
+
+/// A full page whose bottom edge tears as `rip` goes 0 → 1 (the rip front moves left to right).
+/// `fiber` draws the deeper, lighter layer that peeks out below the rip.
 struct TornPage: Shape {
-    var edgeDepth: CGFloat = 44
+    var rip: Double
     var fiber = false
+    var edgeDepth: CGFloat = 48
+
+    var animatableData: Double {
+        get { rip }
+        set { rip = newValue }
+    }
 
     nonisolated func path(in rect: CGRect) -> Path {
-        guard edgeDepth > 0 else { return Path(rect) }
+        guard rip > 0 else { return Path(rect) }
+
         var path = Path()
         let top = rect.maxY - edgeDepth
+        let front = rect.minX + rect.width * 1.25 * rip      // where the tear has reached
+
         path.move(to: CGPoint(x: rect.minX, y: rect.minY))
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
 
-        // seeded noise so both layers rip along the same line
+        // seeded noise so the fibre layer follows the same rip line
         var state: UInt64 = 7
         func random() -> Double {
             state = state &* 6364136223846793005 &+ 1442695040888963407
@@ -66,14 +117,17 @@ struct TornPage: Shape {
         }
 
         var x = rect.maxX
-        while x > rect.minX {
+        while x >= rect.minX {
             var y = 0.38 + 0.16 * sin(x / 41) + 0.09 * sin(x / 13 + 1) + random() * 0.14
             let fibreDepth = 0.08 + random() * 0.2
             if fiber { y += fibreDepth }
-            path.addLine(to: CGPoint(x: x, y: top + min(y, 1) * edgeDepth))
-            x -= 6
+            // untorn ahead of the front, fully torn ~60pt behind it
+            let torn = min(max((front - x) / 60, 0), 1)
+            let rippedY = top + min(y, 1) * edgeDepth
+            path.addLine(to: CGPoint(x: x, y: rect.maxY + (rippedY - rect.maxY) * torn))
+            x -= 5
         }
-        path.addLine(to: CGPoint(x: rect.minX, y: top + (fiber ? 0.6 : 0.42) * edgeDepth))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
         path.closeSubpath()
         return path
     }

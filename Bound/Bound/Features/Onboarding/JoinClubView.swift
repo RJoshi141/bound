@@ -167,6 +167,6 @@ struct JoinClubView: View {
             clubName = newClubName.trimmingCharacters(in: .whitespaces)
             isHost = true
         }
-        withAnimation(.tear) { hasJoined = true }
+        hasJoined = true     // ContentView animates the tear
     }
 }

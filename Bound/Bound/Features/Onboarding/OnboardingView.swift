@@ -21,11 +21,11 @@ struct OnboardingView: View {
             case .join:
                 JoinClubView(mode: .join, onBack: back)
                     .zIndex(0)
-                    .transition(.opacity)
+                    .transition(reduceMotion ? .opacity : .revealUnder)
             case .start:
                 JoinClubView(mode: .start, onBack: back)
                     .zIndex(0)
-                    .transition(.opacity)
+                    .transition(reduceMotion ? .opacity : .revealUnder)
             }
         }
     }

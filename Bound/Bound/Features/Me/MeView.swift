@@ -118,7 +118,7 @@ struct MeView: View {
                 .frame(minHeight: 52)
             row("Import from Goodreads", systemImage: "square.and.arrow.down")
             Button(role: .destructive) {
-                withAnimation(.easeInOut(duration: 0.3)) { hasJoined = false }
+                hasJoined = false
             } label: {
                 HStack {
                     Text("Leave club (restart onboarding)")
