@@ -2,12 +2,12 @@ import Foundation
 import SwiftUI
 
 // The page tear: a rip runs across the bottom of the outgoing screen, then the
-// page peels up and away (slight curl + tilt), revealing the new screen underneath.
+// page lifts straight up and away, revealing the new screen underneath.
 // One-way. Used when leaving the start screen and when finishing the join flow.
 
 extension Animation {
     /// Gentle in-out over the whole tear; the modifier splits it into rip → peel phases.
-    static let tear = Animation.timingCurve(0.42, 0, 0.25, 1, duration: 1.9)
+    static let tear = Animation.timingCurve(0.42, 0, 0.25, 1, duration: 2.6)
 }
 
 extension AnyTransition {
@@ -45,7 +45,7 @@ struct TearAway: ViewModifier, Animatable {
 
     func body(content: Content) -> some View {
         let rip = phase(progress, from: 0.0, to: 0.38)     // rip travels left → right
-        let peel = phase(progress, from: 0.22, to: 1.0)    // page lifts and curls away
+        let peel = phase(progress, from: 0.22, to: 1.0)    // page lifts straight up
 
         return content
             // the torn mask, extended past the safe areas so nothing shows white
@@ -59,13 +59,9 @@ struct TearAway: ViewModifier, Animatable {
                     .ignoresSafeArea()
             }
             .shadow(color: .black.opacity(0.28 * min(rip * 2, 1)), radius: 10 + 20 * peel, y: 8 + 16 * peel)
+            // straight up, no tilt or curl
             .visualEffect { view, proxy in
-                view
-                    // curl: the torn bottom tips toward you as it lifts
-                    .rotation3DEffect(.degrees(16 * peel), axis: (x: 1, y: 0, z: 0), anchor: .top, perspective: 0.55)
-                    // a little sideways drift, like a hand pulling from one corner
-                    .rotationEffect(.degrees(-3.5 * peel), anchor: .topLeading)
-                    .offset(x: 18 * peel, y: -peel * (proxy.size.height + 260))
+                view.offset(y: -peel * (proxy.size.height + 260))
             }
     }
 }

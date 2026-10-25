@@ -278,3 +278,93 @@ extension View {
         self.background(Theme.Colors.paper.ignoresSafeArea())
     }
 }
+
+// MARK: - Paper menu
+// Replaces the system Menu: a printed card that drops from its button.
+
+struct PaperMenuItem: Identifiable {
+    let id = UUID()
+    let title: String
+    var isChecked = false
+    var isDestructive = false
+    let action: () -> Void
+}
+
+struct PaperMenuSection: Identifiable {
+    let id = UUID()
+    var label: String? = nil
+    let items: [PaperMenuItem]
+}
+
+struct PaperMenu: View {
+    let sections: [PaperMenuSection]
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
+                if index > 0 {
+                    Rectangle().fill(Theme.Colors.line).frame(height: 1).padding(.horizontal, 12)
+                }
+                if let label = section.label {
+                    MonoLabel(label, size: 10)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 2)
+                }
+                ForEach(section.items) { item in
+                    Button {
+                        onClose()
+                        item.action()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 13, weight: .semibold))
+                                .opacity(item.isChecked ? 1 : 0)
+                                .frame(width: 16)
+                            Text(item.title)
+                                .font(Theme.Fonts.letterpress(19))
+                                .tracking(1)
+                            Spacer(minLength: 0)
+                        }
+                        .foregroundStyle(item.isDestructive ? Theme.Colors.oxblood : Theme.Colors.ink)
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: 46)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(item.isChecked ? .isSelected : [])
+                }
+            }
+        }
+        .padding(.vertical, 6)
+        .frame(width: 250)
+        .background(Theme.Colors.card)
+        .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
+        .overlay(Rectangle().inset(by: 4).stroke(Theme.Colors.ink.opacity(0.35), lineWidth: 0.75))
+        .shadow(color: Theme.Colors.ink.opacity(0.22), radius: 18, y: 12)
+    }
+}
+
+extension View {
+    /// Shows a PaperMenu pinned under the top-trailing corner, with a tap-away backdrop.
+    func paperMenu(isPresented: Binding<Bool>, topOffset: CGFloat = 52, sections: @escaping () -> [PaperMenuSection]) -> some View {
+        overlay(alignment: .topTrailing) {
+            if isPresented.wrappedValue {
+                ZStack(alignment: .topTrailing) {
+                    Color.black.opacity(0.06)
+                        .ignoresSafeArea()
+                        .onTapGesture { isPresented.wrappedValue = false }
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityLabel("Close menu")
+                    PaperMenu(sections: sections()) { isPresented.wrappedValue = false }
+                        .padding(.top, topOffset)
+                        .padding(.trailing, 16)
+                        .transition(.scale(scale: 0.94, anchor: .topTrailing).combined(with: .opacity))
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: isPresented.wrappedValue)
+    }
+}

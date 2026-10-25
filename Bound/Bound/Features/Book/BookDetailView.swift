@@ -14,6 +14,7 @@ struct BookDetailView: View {
     @State private var revealAll = false
     @State private var showingLog = false
     @State private var showingWrite = false
+    @State private var showMenu = false
 
     // MARK: spoiler folding
     // A note is safe if it was written at or before your page (or you've finished),
@@ -66,6 +67,26 @@ struct BookDetailView: View {
         .sheet(isPresented: $showingLog) { LogPagesSheet(book: book) }
         .sheet(isPresented: $showingWrite) { WriteNoteView(book: book) }
         .animation(.easeInOut(duration: 0.25), value: revealAll)
+        .paperMenu(isPresented: $showMenu) { menuSections }
+    }
+
+    private var menuSections: [PaperMenuSection] {
+        [
+            PaperMenuSection(label: "Move to shelf", items: ShelfKind.allCases.map { kind in
+                PaperMenuItem(title: kind.title, isChecked: book.shelf == kind) { book.shelf = kind }
+            }),
+            PaperMenuSection(items: [
+                PaperMenuItem(title: "Remove from shelves", isDestructive: true) {
+                    // pop first, then delete, so the screen never renders a deleted model
+                    let doomed = book
+                    dismiss()
+                    Task {
+                        try? await Task.sleep(for: .seconds(1))
+                        context.delete(doomed)
+                    }
+                }
+            ]),
+        ]
     }
 
     // MARK: sections
@@ -80,27 +101,9 @@ struct BookDetailView: View {
                 color: Theme.Colors.oxblood,
                 bordered: false
             ) { book.isFavourite.toggle() }
-            Menu {
-                Picker("Shelf", selection: $book.shelf) {
-                    ForEach(ShelfKind.allCases) { Text($0.title).tag($0) }
-                }
-                Button("Remove from my shelves", role: .destructive) {
-                    // pop first, then delete, so the screen never renders a deleted model
-                    let doomed = book
-                    dismiss()
-                    Task {
-                        try? await Task.sleep(for: .seconds(1))
-                        context.delete(doomed)
-                    }
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Theme.Colors.ink)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
+            IconButton(systemName: "ellipsis", label: "More options", bordered: false) {
+                showMenu.toggle()
             }
-            .accessibilityLabel("More options")
         }
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
