@@ -19,27 +19,30 @@ extension AnyTransition {
     }
 }
 
-struct TearAway: ViewModifier {
+struct TearAway: ViewModifier, Animatable {
     var progress: Double            // 0 = resting, 1 = fully lifted off screen
 
-    private let edgeDepth: CGFloat = 44
+    // Animatable is what makes SwiftUI tween `progress` frame by frame.
+    // Without it the transition just jumps from 0 to 1 and the page vanishes.
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    private let maxDepth: CGFloat = 44
 
     func body(content: Content) -> some View {
+        // rip opens fast in the first ~10% of the animation, then the page lifts
+        let depth = maxDepth * min(1, progress * 10)
         let lift = progress          // local copy for the nonisolated visualEffect closure
-        if progress == 0 {
-            content
-        } else {
-            content
-                // rip the bottom edge of the page...
-                .mask(TornPage(edgeDepth: edgeDepth))
-                // ...with paper fibres showing just below the rip
-                .background(TornPage(edgeDepth: edgeDepth, fiber: true).fill(Theme.Colors.fibre))
-                .shadow(color: .black.opacity(0.25), radius: 16, y: 10)
-                // then lift the whole page up and out
-                .visualEffect { view, proxy in
-                    view.offset(y: -lift * (proxy.size.height + 80))
-                }
-        }
+
+        return content
+            .mask(TornPage(edgeDepth: depth))
+            .background(TornPage(edgeDepth: depth, fiber: true).fill(Theme.Colors.fibre))
+            .shadow(color: .black.opacity(progress > 0 ? 0.25 : 0), radius: 16, y: 10)
+            .visualEffect { view, proxy in
+                view.offset(y: -lift * (proxy.size.height + 80))
+            }
     }
 }
 
@@ -49,6 +52,7 @@ struct TornPage: Shape {
     var fiber = false
 
     nonisolated func path(in rect: CGRect) -> Path {
+        guard edgeDepth > 0 else { return Path(rect) }
         var path = Path()
         let top = rect.maxY - edgeDepth
         path.move(to: CGPoint(x: rect.minX, y: rect.minY))
