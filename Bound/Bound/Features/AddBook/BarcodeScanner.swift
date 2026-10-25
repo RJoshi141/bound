@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import UIKit
+import Vision
 import VisionKit
 
 /// Live camera that reads the ISBN barcode on the back of a book and hands it back once.
