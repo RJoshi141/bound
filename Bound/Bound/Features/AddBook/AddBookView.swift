@@ -22,7 +22,7 @@ struct AddBookView: View {
         VStack(spacing: 0) {
             HStack {
                 Button("Cancel") { dismiss() }
-                    .font(Theme.Fonts.body(16))
+                    .font(Theme.Fonts.letterpress(18))
                     .frame(minHeight: 44)
                     .buttonStyle(.plain)
                 Spacer()
@@ -44,9 +44,9 @@ struct AddBookView: View {
                 }
                 .padding(.horizontal, 14)
                 .frame(height: 48)
-                .background(Theme.Colors.paperDeep, in: RoundedRectangle(cornerRadius: 12))
+                .background(Theme.Colors.paperDeep)
 
-                CircleIconButton(systemName: "barcode.viewfinder", label: "Scan a barcode") {
+                IconButton(systemName: "barcode.viewfinder", label: "Scan a barcode") {
                     // TODO: VisionKit DataScannerViewController
                 }
             }
@@ -101,7 +101,7 @@ struct AddBookView: View {
                     Text(book.author).font(Theme.Fonts.body(14)).foregroundStyle(Theme.Colors.inkMuted)
                 }
                 Spacer()
-                CircleIconButton(
+                IconButton(
                     systemName: favourite ? "heart.fill" : "heart",
                     label: favourite ? "Remove from favourites" : "Add to favourites",
                     color: Theme.Colors.oxblood

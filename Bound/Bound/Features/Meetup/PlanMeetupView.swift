@@ -61,7 +61,7 @@ struct PlanMeetupView: View {
                                     Button(pick.title) { chosenTitle = pick.title }
                                 }
                             }
-                            .font(Theme.Fonts.body(14, weight: .semibold))
+                            .font(Theme.Fonts.letterpress(17))
                             .tint(Theme.Colors.forest)
                         }
                         .padding(14)
@@ -119,11 +119,11 @@ struct PlanMeetupView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         fieldLabel("Where")
                         TextField("Place", text: $place)
-                            .font(Theme.Fonts.body(16))
+                            .font(Theme.Fonts.script(26))
                             .padding(.horizontal, 14)
                             .frame(height: 48)
-                            .background(Theme.Colors.card, in: RoundedRectangle(cornerRadius: 10))
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
+                            .background(Theme.Colors.card)
+                            .overlay(Rectangle().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
                         Toggle("Rotate host each month", isOn: $rotateHost)
                             .font(Theme.Fonts.body(15))
                             .tint(Theme.Colors.forest)

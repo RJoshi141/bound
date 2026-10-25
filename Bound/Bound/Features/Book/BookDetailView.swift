@@ -74,7 +74,7 @@ struct BookDetailView: View {
         HStack(spacing: 8) {
             BackButton(title: "Shelves") { dismiss() }
             Spacer()
-            CircleIconButton(
+            IconButton(
                 systemName: book.isFavourite ? "heart.fill" : "heart",
                 label: book.isFavourite ? "Remove from favourites" : "Add to favourites",
                 color: Theme.Colors.oxblood
@@ -97,7 +97,7 @@ struct BookDetailView: View {
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.Colors.ink)
                     .frame(width: 44, height: 44)
-                    .overlay(Circle().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
+                    .overlay(Rectangle().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
             }
             .accessibilityLabel("More options")
         }
@@ -128,11 +128,7 @@ struct BookDetailView: View {
                 }
                 ProgressBar(value: book.progress)
                 Button("Log pages") { showingLog = true }
-                    .font(Theme.Fonts.body(13, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.ink)
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .overlay(Capsule().stroke(Theme.Colors.ink, lineWidth: 1.5))
-                    .buttonStyle(.plain)
+                    .buttonStyle(SmallButtonStyle(fullWidth: true))
                     .padding(.top, 4)
             }
             .foregroundStyle(Theme.Colors.ink)
@@ -199,13 +195,13 @@ struct BookDetailView: View {
                         Text("\(foldedCount) note\(foldedCount == 1 ? "" : "s") past p. \(book.currentPage) folded away")
                             .font(Theme.Fonts.body(14))
                         Spacer()
-                        Text("Reveal").font(Theme.Fonts.body(14, weight: .semibold))
+                        Text("Reveal").font(Theme.Fonts.letterpress(17)).tracking(1)
                     }
                     .foregroundStyle(Theme.Colors.inkMuted)
                     .padding(.horizontal, 16)
                     .frame(minHeight: 52)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 6)
+                        Rectangle()
                             .strokeBorder(Theme.Colors.lineStrong, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
                     )
                 }
@@ -283,8 +279,8 @@ struct ProgressBar: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                Capsule().fill(Theme.Colors.paperDeep)
-                Capsule().fill(tint).frame(width: max(6, geo.size.width * value))
+                Rectangle().fill(Theme.Colors.paperDeep)
+                Rectangle().fill(tint).frame(width: max(4, geo.size.width * value))
             }
         }
         .frame(height: 6)

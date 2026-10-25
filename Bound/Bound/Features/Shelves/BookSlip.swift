@@ -24,19 +24,14 @@ struct BookSlip: View {
 
             Spacer(minLength: 0)
 
-            CircleIconButton(
+            IconButton(
                 systemName: book.isFavourite ? "heart.fill" : "heart",
                 label: book.isFavourite ? "Remove from favourites" : "Add to favourites",
                 color: Theme.Colors.oxblood
             ) { book.isFavourite.toggle() }
 
             Button("Open", action: onOpen)
-                .font(Theme.Fonts.body(14, weight: .semibold))
-                .foregroundStyle(Theme.Colors.card)
-                .padding(.horizontal, 16)
-                .frame(height: 44)
-                .background(Theme.Colors.forest, in: Capsule())
-                .buttonStyle(.plain)
+                .buttonStyle(SmallButtonStyle(filled: true))
         }
         .padding(14)
         .background(Theme.Colors.card, in: RoundedRectangle(cornerRadius: 8))

@@ -22,17 +22,14 @@ struct WriteNoteView: View {
         VStack(spacing: 0) {
             HStack {
                 Button("Cancel") { dismiss() }
-                    .font(Theme.Fonts.body(16))
+                    .font(Theme.Fonts.letterpress(18))
                     .frame(minHeight: 44)
                 Spacer()
                 Text("Your note").font(Theme.Fonts.body(17, weight: .semibold))
                 Spacer()
                 Button("Post", action: post)
-                    .font(Theme.Fonts.body(15, weight: .semibold))
-                    .foregroundStyle(Theme.Colors.card)
-                    .padding(.horizontal, 18)
-                    .frame(height: 38)
-                    .background(Theme.Colors.forest.opacity(canPost ? 1 : 0.4), in: Capsule())
+                    .buttonStyle(SmallButtonStyle(filled: true))
+                    .opacity(canPost ? 1 : 0.4)
                     .disabled(!canPost)
             }
             .foregroundStyle(Theme.Colors.ink)
@@ -74,20 +71,20 @@ struct WriteNoteView: View {
                         ZStack(alignment: .topLeading) {
                             if text.isEmpty {
                                 Text("What stayed with you?")
-                                    .font(Theme.Fonts.body(16))
+                                    .font(Theme.Fonts.script(24))
                                     .foregroundStyle(Theme.Colors.inkMuted)
                                     .padding(.horizontal, 18)
                                     .padding(.vertical, 20)
                             }
                             TextEditor(text: $text)
-                                .font(Theme.Fonts.body(16))
+                                .font(Theme.Fonts.script(24))
                                 .scrollContentBackground(.hidden)
                                 .focused($editorFocused)
                                 .padding(12)
                         }
                         .frame(minHeight: 160)
-                        .background(Theme.Colors.card, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.Colors.ink, lineWidth: 1.5))
+                        .background(Theme.Colors.card)
+                        .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
                         HStack {
                             Spacer()
                             MonoLabel("\(text.count) / 500", size: 10)

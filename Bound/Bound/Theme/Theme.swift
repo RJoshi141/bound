@@ -46,6 +46,15 @@ enum Theme {
         static func body(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
             .custom("HankenGrotesk-Regular", size: size, relativeTo: .body).weight(weight)
         }
+        /// Engraved small caps for every button. Pair with a little tracking.
+        static func letterpress(_ size: CGFloat) -> Font {
+            .custom("IM_FELL_English_SC", size: size, relativeTo: .body)
+        }
+        /// Copperplate script for anything a person wrote: notes, names, codes.
+        /// Runs small, so use roughly 1.4x the size you'd give body text.
+        static func script(_ size: CGFloat) -> Font {
+            .custom("PinyonScript-Regular", size: size, relativeTo: .body)
+        }
         /// Library-card labels: dates, counts, shelf tags. Pair with .tracking + uppercase.
         static func mono(_ size: CGFloat, medium: Bool = false) -> Font {
             .custom(medium ? "DMMono-Medium" : "DMMono-Regular", size: size, relativeTo: .caption)

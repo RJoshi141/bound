@@ -37,10 +37,10 @@ struct LogPagesSheet: View {
 
     private func stepButton(_ title: String, _ delta: Double) -> some View {
         Button(title) { page = min(max(page + delta, 0), Double(book.pageCount)) }
-            .font(Theme.Fonts.mono(13, medium: true))
+            .font(Theme.Fonts.letterpress(17))
             .foregroundStyle(Theme.Colors.ink)
             .frame(width: 52, height: 44)
-            .overlay(Capsule().stroke(Theme.Colors.lineStrong, lineWidth: 1.5))
+            .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
             .buttonStyle(.plain)
     }
 

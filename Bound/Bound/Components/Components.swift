@@ -41,35 +41,65 @@ struct SectionTitle: View {
 }
 
 // MARK: - Buttons
+// Square corners + IM Fell small caps everywhere: printed, not app-y.
 
+/// Big filled button: forest, with a cream hairline inset like a printed border.
 struct PrimaryButtonStyle: ButtonStyle {
     var fill: Color = Theme.Colors.forest
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Theme.Fonts.body(16, weight: .semibold))
+            .font(Theme.Fonts.letterpress(21))
+            .tracking(1.5)
             .foregroundStyle(Theme.Colors.card)
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(fill, in: Capsule())
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .background(fill)
+            .overlay(Rectangle().inset(by: 4).stroke(Color(hex: "E9D6A8"), lineWidth: 1))
             .opacity(configuration.isPressed ? 0.85 : 1)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
     }
 }
 
+/// Big outline button: ink rule with a second hairline just inside.
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Theme.Fonts.body(16, weight: .semibold))
+            .font(Theme.Fonts.letterpress(21))
+            .tracking(1.5)
             .foregroundStyle(Theme.Colors.ink)
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .overlay(Capsule().stroke(Theme.Colors.ink, lineWidth: 1.5))
-            .contentShape(Capsule())
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
+            .overlay(Rectangle().inset(by: 4).stroke(Theme.Colors.ink, lineWidth: 0.75))
+            .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 
-/// Round 44pt icon button with an outline.
-struct CircleIconButton: View {
+/// Small inline button ("Log pages", "Open"). Filled = forest, otherwise ink outline.
+struct SmallButtonStyle: ButtonStyle {
+    var filled = false
+    var color: Color = Theme.Colors.ink
+    var fullWidth = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(Theme.Fonts.letterpress(17))
+            .tracking(1.2)
+            .foregroundStyle(filled ? Theme.Colors.card : color)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 40)
+            .background(filled ? Theme.Colors.forest : .clear)
+            .overlay(Rectangle().stroke(filled ? Theme.Colors.forest : color, lineWidth: 1.5))
+            .overlay {
+                if filled { Rectangle().inset(by: 3).stroke(Color(hex: "E9D6A8"), lineWidth: 0.75) }
+            }
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.75 : 1)
+    }
+}
+
+/// Square 44pt icon button with a ruled outline.
+struct IconButton: View {
     let systemName: String
     let label: String
     var color: Color = Theme.Colors.ink
@@ -82,8 +112,8 @@ struct CircleIconButton: View {
                 .font(.system(size: 17, weight: .medium))
                 .foregroundStyle(filled ? Theme.Colors.card : color)
                 .frame(width: 44, height: 44)
-                .background(filled ? color : .clear, in: Circle())
-                .overlay(Circle().stroke(color, lineWidth: 1.5))
+                .background(filled ? color : .clear)
+                .overlay(Rectangle().stroke(color, lineWidth: 1.5))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
@@ -98,12 +128,13 @@ struct Chip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(Theme.Fonts.body(13, weight: .medium))
+                .font(Theme.Fonts.letterpress(16))
+                .tracking(1)
                 .foregroundStyle(isOn ? Theme.Colors.paper : Theme.Colors.ink)
                 .padding(.horizontal, 14)
-                .frame(height: 34)
-                .background(isOn ? Theme.Colors.ink : .clear, in: Capsule())
-                .overlay(Capsule().stroke(isOn ? Theme.Colors.ink : Theme.Colors.lineStrong, lineWidth: 1.5))
+                .frame(height: 36)
+                .background(isOn ? Theme.Colors.ink : .clear)
+                .overlay(Rectangle().stroke(isOn ? Theme.Colors.ink : Theme.Colors.lineStrong, lineWidth: 1.5))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isOn ? .isSelected : [])
@@ -119,7 +150,7 @@ struct BackButton: View {
         Button(action: action) {
             HStack(spacing: 2) {
                 Image(systemName: "chevron.left").font(.system(size: 17, weight: .semibold))
-                Text(title).font(Theme.Fonts.body(16))
+                Text(title).font(Theme.Fonts.letterpress(18)).tracking(1)
             }
             .foregroundStyle(Theme.Colors.ink)
             .frame(minHeight: 44)
@@ -138,7 +169,8 @@ struct Avatar: View {
 
     var body: some View {
         Text(initial)
-            .font(Theme.Fonts.body(size * 0.4, weight: .semibold))
+            .font(Theme.Fonts.script(size * 0.62))
+            .offset(y: size * 0.04)
             .foregroundStyle(Color.isLight(hex: hex) ? Theme.Colors.ink : Theme.Colors.card)
             .frame(width: size, height: size)
             .background(Color(hex: hex), in: Circle())

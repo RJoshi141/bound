@@ -40,7 +40,7 @@ struct ClubView: View {
             VStack(alignment: .leading, spacing: 4) {
                 MonoLabel("\(members.count + 1) members · est. 2024", color: Theme.Colors.oxblood)
                 Text(clubName)
-                    .font(Theme.Fonts.display(42))
+                    .font(Theme.Fonts.script(46))
                     .foregroundStyle(Theme.Colors.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -50,7 +50,7 @@ struct ClubView: View {
                     .font(.system(size: 17, weight: .medium))
                     .foregroundStyle(Theme.Colors.ink)
                     .frame(width: 44, height: 44)
-                    .overlay(Circle().stroke(Theme.Colors.ink, lineWidth: 1.5))
+                    .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
             }
             .accessibilityLabel("Invite members")
             .padding(.top, 18)
@@ -90,7 +90,7 @@ struct ClubView: View {
         HStack(spacing: 12) {
             Avatar(initial: initial, hex: hex, size: 38)
             VStack(alignment: .leading, spacing: 2) {
-                Text(name).font(Theme.Fonts.body(15, weight: .semibold))
+                Text(name).font(Theme.Fonts.script(25))
                 Text(status).font(Theme.Fonts.body(13)).foregroundStyle(Theme.Colors.inkMuted)
             }
             Spacer()
@@ -117,23 +117,18 @@ struct RecCard: View {
             HStack(alignment: .top, spacing: 12) {
                 SpineSwatch(hex: rec.spineHex, width: 26, height: 58)
                 VStack(alignment: .leading, spacing: 2) {
-                    MonoLabel("From \(rec.fromName)", color: Theme.Colors.oxblood, size: 10)
+                    Text("from \(rec.fromName)").font(Theme.Fonts.script(20)).foregroundStyle(Theme.Colors.oxblood)
                     Text(rec.title).font(Theme.Fonts.display(22)).lineLimit(1)
                     Text(rec.reason)
-                        .font(Theme.Fonts.body(12))
+                        .font(Theme.Fonts.script(17))
                         .foregroundStyle(Theme.Colors.inkMuted)
                         .lineLimit(2)
                 }
             }
             Button(action: onAdd) {
                 Label(rec.isAdded ? "On your shelf" : "Add to To read", systemImage: rec.isAdded ? "checkmark" : "plus")
-                    .font(Theme.Fonts.body(13, weight: .semibold))
-                    .foregroundStyle(rec.isAdded ? Theme.Colors.card : Theme.Colors.ink)
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(rec.isAdded ? Theme.Colors.forest : .clear, in: Capsule())
-                    .overlay(Capsule().stroke(rec.isAdded ? Theme.Colors.forest : Theme.Colors.ink, lineWidth: 1.5))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(SmallButtonStyle(filled: rec.isAdded, fullWidth: true))
             .disabled(rec.isAdded)
         }
         .foregroundStyle(Theme.Colors.ink)

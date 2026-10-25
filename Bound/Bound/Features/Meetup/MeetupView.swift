@@ -46,11 +46,12 @@ struct MeetupView: View {
                         showPlan = true
                     } label: {
                         Label("Plan next", systemImage: "square.and.pencil")
-                            .font(Theme.Fonts.body(13, weight: .semibold))
+                            .font(Theme.Fonts.letterpress(17))
+                            .tracking(1)
                             .foregroundStyle(Theme.Colors.ink)
                             .padding(.horizontal, 14)
                             .frame(height: 40)
-                            .overlay(Capsule().strokeBorder(Theme.Colors.ink, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
+                            .overlay(Rectangle().strokeBorder(Theme.Colors.ink, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
                     }
                     .buttonStyle(.plain)
                     .padding(.bottom, 8)
@@ -92,9 +93,9 @@ struct MeetupView: View {
         }
         .padding(.horizontal, 6)
         .frame(maxWidth: .infinity, minHeight: 54)
-        .background(style == .current ? Theme.Colors.forest : .clear, in: RoundedRectangle(cornerRadius: 6))
+        .background(style == .current ? Theme.Colors.forest : .clear, in: Rectangle())
         .overlay(
-            RoundedRectangle(cornerRadius: 6)
+            Rectangle()
                 .strokeBorder(style == .current ? .clear : Theme.Colors.lineStrong,
                               style: StrokeStyle(lineWidth: 1, dash: style == .next ? [4, 3] : []))
         )
@@ -111,11 +112,13 @@ struct MeetupView: View {
                         if option == .going { UIImpactFeedbackGenerator(style: .rigid).impactOccurred() }
                     } label: {
                         Text(option.title)
-                            .font(Theme.Fonts.body(15, weight: .semibold))
+                            .font(Theme.Fonts.letterpress(19))
+                            .tracking(1.2)
                             .foregroundStyle(isOn ? Theme.Colors.card : Theme.Colors.ink)
-                            .frame(maxWidth: .infinity, minHeight: 46)
-                            .background(isOn ? Theme.Colors.forest : .clear, in: Capsule())
-                            .overlay(Capsule().stroke(isOn ? Theme.Colors.forest : Theme.Colors.lineStrong, lineWidth: 1.5))
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(isOn ? Theme.Colors.forest : .clear)
+                            .overlay(Rectangle().stroke(isOn ? Theme.Colors.forest : Theme.Colors.ink, lineWidth: 1.5))
+                            .overlay(Rectangle().inset(by: 3).stroke(isOn ? Color(hex: "E9D6A8") : .clear, lineWidth: 0.75))
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(isOn ? .isSelected : [])
@@ -148,7 +151,7 @@ struct MeetupView: View {
                         .foregroundStyle(Theme.Colors.oxblood)
                         .padding(.top, 3)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(note.text).font(Theme.Fonts.body(15)).foregroundStyle(Theme.Colors.ink)
+                        Text(note.text).font(Theme.Fonts.script(22)).foregroundStyle(Theme.Colors.ink)
                         MonoLabel("\(note.authorName) · p. \(note.page)", size: 10)
                     }
                 }
@@ -188,8 +191,8 @@ struct MeetupView: View {
                     .frame(height: 50)
                     .foregroundStyle(Theme.Colors.ink)
                     .background(Theme.Colors.card)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(pick.isMyVote ? Theme.Colors.forest : Theme.Colors.line, lineWidth: 1.5))
+                    .clipShape(Rectangle())
+                    .overlay(Rectangle().stroke(pick.isMyVote ? Theme.Colors.forest : Theme.Colors.line, lineWidth: 1.5))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(pick.title), \(pick.total) votes")
@@ -235,7 +238,7 @@ struct TicketCard: View {
                 Spacer()
                 VStack(alignment: .leading, spacing: 2) {
                     MonoLabel("Where", size: 10)
-                    Text(meetup.place).font(Theme.Fonts.display(26))
+                    Text(meetup.place).font(Theme.Fonts.script(30))
                     Text(meetup.address).font(Theme.Fonts.body(14))
                 }
                 Spacer()
@@ -252,7 +255,8 @@ struct TicketCard: View {
 
             if !meetup.bringing.isEmpty {
                 HStack {
-                    Text("Bringing: \(meetup.bringing)").font(Theme.Fonts.body(13)).foregroundStyle(Theme.Colors.inkMuted)
+                    MonoLabel("Bringing", size: 10)
+                    Text(meetup.bringing).font(Theme.Fonts.script(21)).foregroundStyle(Theme.Colors.ink)
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -275,15 +279,16 @@ struct TicketCard: View {
                         .frame(maxWidth: .infinity, minHeight: 48)
                 }
             }
-            .font(Theme.Fonts.body(14, weight: .semibold))
+            .font(Theme.Fonts.letterpress(17))
+            .tracking(1)
             .foregroundStyle(Theme.Colors.ink)
             .buttonStyle(.plain)
             .overlay(alignment: .top) { Rectangle().fill(Theme.Colors.line).frame(height: 1) }
         }
         .foregroundStyle(Theme.Colors.ink)
         .background(Theme.Colors.card)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.Colors.ink, lineWidth: 1.5))
+        .clipShape(Rectangle())
+        .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
         .overlay(alignment: .topTrailing) {
             if meetup.rsvp == .going {
                 InkStamp(top: "RSVP", middle: "Going", bottom: meetup.date.formatted(.dateTime.day().month(.twoDigits)), size: 88)

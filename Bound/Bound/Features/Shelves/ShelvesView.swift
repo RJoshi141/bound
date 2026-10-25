@@ -75,13 +75,15 @@ struct ShelvesView: View {
     private var header: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 4) {
-                MonoLabel(clubName, color: Theme.Colors.oxblood)
+                Text(clubName)
+                    .font(Theme.Fonts.script(24))
+                    .foregroundStyle(Theme.Colors.oxblood)
                 Text("My shelves")
                     .font(Theme.Fonts.display(46))
                     .foregroundStyle(Theme.Colors.ink)
             }
             Spacer()
-            CircleIconButton(systemName: "plus", label: "Add a book") { showingAdd = true }
+            IconButton(systemName: "plus", label: "Add a book") { showingAdd = true }
                 .padding(.bottom, 6)
         }
     }
