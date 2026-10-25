@@ -14,11 +14,29 @@ final class Meetup {
     var rsvpRaw: String
     var bringing: String
     var goingCount: Int         // others going, not counting you
-    var maybeCount: Int
+    var maybeCount: Int         // others maybe, not counting you
+    /// Row id in Supabase `meetups`.
+    var remoteID: UUID?
+    /// Clubmates who said they're going (profile ids), for the avatars.
+    var goingIDs: [String] = []
 
     enum RSVP: String, CaseIterable, Identifiable {
         case going, maybe, notGoing
         var id: String { rawValue }
+
+        /// The `rsvp_status` enum in Supabase.
+        var remoteValue: String {
+            switch self {
+            case .going: "going"
+            case .maybe: "maybe"
+            case .notGoing: "not_going"
+            }
+        }
+
+        init?(remoteValue: String) {
+            guard let match = Self.allCases.first(where: { $0.remoteValue == remoteValue }) else { return nil }
+            self = match
+        }
         var title: String {
             switch self {
             case .going: "Going"
@@ -64,6 +82,9 @@ final class Meetup {
         self.goingCount = goingCount
         self.maybeCount = maybeCount
     }
+
+    /// Your answer, or nil if you haven't answered yet.
+    var myRSVP: RSVP? { RSVP(rawValue: rsvpRaw) }
 
     var rsvp: RSVP {
         get { RSVP(rawValue: rsvpRaw) ?? .maybe }

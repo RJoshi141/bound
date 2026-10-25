@@ -4,9 +4,10 @@ import SwiftData
 /// Classics + a pretend club for first launch and previews. Local only until we add a backend.
 enum SampleData {
     /// Seeds each kind separately, so older installs pick up new models too.
-    /// Pass `includeBooks: false` once signed in: your real shelves come from Supabase.
-    static func seedIfNeeded(_ context: ModelContext, includeBooks: Bool = true) {
-        if includeBooks, count(Book.self, in: context) == 0 { insertBooks(into: context) }
+    /// Pass `includeSamples: false` once signed in: the real club comes from Supabase.
+    static func seedIfNeeded(_ context: ModelContext, includeSamples: Bool = true) {
+        guard includeSamples else { return }
+        if count(Book.self, in: context) == 0 { insertBooks(into: context) }
         if count(Meetup.self, in: context) == 0 { insertMeetup(into: context) }
         if count(ClubMember.self, in: context) == 0 { insertClub(into: context) }
     }

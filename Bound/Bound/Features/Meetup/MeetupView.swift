@@ -12,18 +12,20 @@ struct MeetupView: View {
     @Query private var members: [ClubMember]
     @Query(filter: #Predicate<Note> { $0.discussAtMeetup }) private var agenda: [Note]
 
+    @Query(sort: \Book.addedAt, order: .reverse) private var shelfBooks: [Book]
+    @AppStorage(AppKeys.isHost) private var isHost = false
+
     @State private var showPlan = false
+    @State private var showAddOption = false
+    @State private var actionError: String?
 
     var body: some View {
         NavigationStack {
             Group {
-                if let meetup = meetups.first {
-                    content(meetup)
-                } else {
-                    ContentUnavailableView("No meetup yet", systemImage: "calendar")
-                }
+                content(meetups.first)
             }
             .paperBackground()
+            .paperMenu(isPresented: $showAddOption, topOffset: 120) { addOptionMenu }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(isPresented: $showPlan) {
                 PlanMeetupView(nextNumber: (meetups.first?.number ?? 0) + 1)
@@ -31,41 +33,64 @@ struct MeetupView: View {
         }
     }
 
-    private func content(_ meetup: Meetup) -> some View {
+    private func content(_ meetup: Meetup?) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 4) {
-                        MonoLabel("Meeting no. \(meetup.number)", color: Theme.Colors.oxblood)
-                        Text(meetup.date.formatted(.dateTime.month(.wide)))
+                        MonoLabel(meetup.map { "Meeting no. \($0.number)" } ?? "Meetups", color: Theme.Colors.oxblood)
+                        Text(meetup?.date.formatted(.dateTime.month(.wide)) ?? "Next up")
                             .font(Theme.Fonts.display(46))
                             .foregroundStyle(Theme.Colors.ink)
                     }
                     Spacer()
-                    Button {
-                        showPlan = true
-                    } label: {
-                        Label("Plan next", systemImage: "square.and.pencil")
-                            .font(Theme.Fonts.letterpress(17))
-                            .tracking(1)
-                            .foregroundStyle(Theme.Colors.ink)
-                            .padding(.horizontal, 14)
-                            .frame(height: 40)
-                            .overlay(Rectangle().strokeBorder(Theme.Colors.ink, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.bottom, 8)
+                    if isHost { planButton(first: meetup == nil) }
                 }
 
-                monthStrip(current: meetup)
-                TicketCard(meetup: meetup)
-                rsvpSection(meetup)
+                if let meetup {
+                    monthStrip(current: meetup)
+                    TicketCard(meetup: meetup)
+                    rsvpSection(meetup)
+                } else {
+                    emptyTicket
+                }
                 if !agenda.isEmpty { agendaSection }
                 voteSection
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 40)
         }
+    }
+
+    private func planButton(first: Bool) -> some View {
+        Button {
+            showPlan = true
+        } label: {
+            Label(first ? "Plan one" : "Plan next", systemImage: "square.and.pencil")
+                .font(Theme.Fonts.letterpress(17))
+                .tracking(1)
+                .foregroundStyle(Theme.Colors.ink)
+                .padding(.horizontal, 14)
+                .frame(height: 40)
+                .overlay(Rectangle().strokeBorder(Theme.Colors.ink, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3])))
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 8)
+    }
+
+    private var emptyTicket: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("No meetup on the books yet").font(Theme.Fonts.display(26))
+            Text(isHost
+                 ? "Put a few books up for a vote below, then plan the meetup when the club has picked."
+                 : "Your host hasn't planned one yet. You can still vote on next month's book below.")
+                .font(Theme.Fonts.body(15))
+                .foregroundStyle(Theme.Colors.inkMuted)
+        }
+        .foregroundStyle(Theme.Colors.ink)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .overlay(Rectangle().strokeBorder(Theme.Colors.lineStrong, style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])))
     }
 
     // Past months double as club history.
@@ -106,10 +131,11 @@ struct MeetupView: View {
             Text("Are you coming?").font(Theme.Fonts.body(13, weight: .semibold))
             HStack(spacing: 8) {
                 ForEach(Meetup.RSVP.allCases) { option in
-                    let isOn = meetup.rsvp == option
+                    let isOn = meetup.myRSVP == option
                     Button {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.55)) { meetup.rsvp = option }
                         if option == .going { UIImpactFeedbackGenerator(style: .rigid).impactOccurred() }
+                        Task { await ClubSync.shared.setRSVP(option, for: meetup) }
                     } label: {
                         Text(option.title)
                             .font(Theme.Fonts.letterpress(19))
@@ -125,14 +151,16 @@ struct MeetupView: View {
                 }
             }
 
-            let going = meetup.goingCount + (meetup.rsvp == .going ? 1 : 0)
+            let going = meetup.goingCount + (meetup.myRSVP == .going ? 1 : 0)
+            let maybe = meetup.maybeCount + (meetup.myRSVP == .maybe ? 1 : 0)
+            let goingMembers = members.filter { meetup.goingIDs.contains($0.remoteID?.uuidString ?? "") }
             HStack(spacing: 12) {
                 HStack(spacing: -8) {
-                    ForEach(members.prefix(meetup.goingCount)) { member in
+                    ForEach(goingMembers.prefix(6)) { member in
                         Avatar(name: member.name, hex: member.colorHex, size: 36)
                     }
                 }
-                Text("\(going) going · \(meetup.maybeCount) maybe")
+                Text("\(going) going · \(maybe) maybe")
                     .font(Theme.Fonts.body(14))
                     .foregroundStyle(Theme.Colors.inkMuted)
             }
@@ -161,7 +189,12 @@ struct MeetupView: View {
     private var voteSection: some View {
         let total = max(picks.reduce(0) { $0 + $1.total }, 1)
         return VStack(alignment: .leading, spacing: 10) {
-            SectionTitle(title: "Next month's pick", trailing: "Closes in 4 days")
+            SectionTitle(title: "Next month's pick", trailing: picks.isEmpty ? "" : "Tap to vote")
+            if picks.isEmpty && !isHost {
+                Text("Nothing up for a vote yet.")
+                    .font(Theme.Fonts.body(15))
+                    .foregroundStyle(Theme.Colors.inkMuted)
+            }
             ForEach(picks) { pick in
                 Button {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
@@ -169,6 +202,8 @@ struct MeetupView: View {
                         picks.forEach { $0.isMyVote = false }
                         pick.isMyVote = !wasMine
                     }
+                    let choice = pick.isMyVote ? pick : nil
+                    Task { await ClubSync.shared.vote(for: choice) }
                 } label: {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
@@ -197,7 +232,47 @@ struct MeetupView: View {
                 .accessibilityLabel("\(pick.title), \(pick.total) votes")
                 .accessibilityAddTraits(pick.isMyVote ? .isSelected : [])
             }
+            if isHost {
+                Button {
+                    showAddOption = true
+                } label: {
+                    Label("Add a book to the vote", systemImage: "plus")
+                        .font(Theme.Fonts.body(15))
+                        .foregroundStyle(Theme.Colors.inkMuted)
+                        .frame(minHeight: 44)
+                }
+                .buttonStyle(.plain)
+            }
+            if let actionError {
+                Text(actionError).font(Theme.Fonts.body(13)).foregroundStyle(Theme.Colors.oxblood)
+            }
         }
+    }
+
+    /// Host picks from their own shelves, to-read first.
+    private var addOptionMenu: [PaperMenuSection] {
+        let taken = Set(picks.map { $0.title.lowercased() })
+        let candidates = shelfBooks
+            .filter { !taken.contains($0.title.lowercased()) && $0.shelf != .finished }
+            .sorted { ($0.shelf == .toRead ? 0 : 1) < ($1.shelf == .toRead ? 0 : 1) }
+            .prefix(8)
+        guard !candidates.isEmpty else {
+            return [PaperMenuSection(label: "Add books to your To read shelf first", items: [])]
+        }
+        return [PaperMenuSection(label: "From your shelves", items: candidates.map { book in
+            PaperMenuItem(title: book.title) {
+                let (catalogID, title, author, year, pages) = (book.catalogID, book.title, book.author, book.year, book.pageCount)
+                Task {
+                    do {
+                        try await ClubSync.shared.addPickOption(catalogID: catalogID, title: title, author: author,
+                                                                year: year, pageCount: pages)
+                        actionError = nil
+                    } catch {
+                        actionError = "Couldn't add \(title). Try again in a moment."
+                    }
+                }
+            }
+        })]
     }
 }
 
@@ -288,7 +363,7 @@ struct TicketCard: View {
         .clipShape(Rectangle())
         .overlay(Rectangle().stroke(Theme.Colors.ink, lineWidth: 1.5))
         .overlay(alignment: .topTrailing) {
-            if meetup.rsvp == .going {
+            if meetup.myRSVP == .going {
                 InkStamp(top: "RSVP", middle: "Going", bottom: meetup.date.formatted(.dateTime.day().month(.twoDigits)), size: 88)
                     .padding(12)
                     .transition(.scale(scale: 1.6).combined(with: .opacity))

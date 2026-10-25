@@ -33,19 +33,21 @@ struct ContentView: View {
         }
         .preferredColorScheme(.light)       // paper look is light-only for now
         .environment(auth)
-        .task { SampleData.seedIfNeeded(context, includeBooks: !hasJoined) }
+        .task { SampleData.seedIfNeeded(context, includeSamples: !hasJoined) }
         .task { await auth.start() }      // restores the saved session, then listens
         // shelves follow whoever is signed in
         .task(id: "\(auth.userID?.uuidString ?? "")|\(clubID)") {
             if let userID = auth.userID {
                 await ShelfSync.shared.start(context: context, userID: userID)
+                await ClubSync.shared.start(context: context, userID: userID)
             } else {
                 ShelfSync.shared.stop()
+                ClubSync.shared.stop()
             }
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
-            case .active: Task { await ShelfSync.shared.pull() }
+            case .active: Task { await ShelfSync.shared.pull(); await ClubSync.shared.pull() }
             case .background: Task { await ShelfSync.shared.push() }
             default: break
             }

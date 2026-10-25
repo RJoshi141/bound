@@ -181,7 +181,8 @@ final class ShelfSync {
                             .eq("id", value: remoteID)
                             .execute()
                     } else {
-                        let catalogID = try await catalogBookID(for: snapshot)
+                        let catalogID = try await CatalogService.bookID(title: snapshot.title, author: snapshot.author,
+                                                                       year: snapshot.year, pageCount: snapshot.pageCount)
                         let saved: IDRow = try await supabase.from("user_books")
                             .upsert(snapshot.insert(userID: userID, bookID: catalogID), onConflict: "user_id,book_id")
                             .select("id")
@@ -312,35 +313,6 @@ final class ShelfSync {
         }
     }
 
-    /// The shared catalog row for this title. `books` has no update policy, so find-then-insert.
-    private func catalogBookID(for book: BookSnapshot) async throws -> UUID {
-        let key = book.catalogKey
-        if let found = try await findCatalogBook(key: key) { return found }
-        do {
-            let inserted: IDRow = try await supabase.from("books")
-                .insert(CatalogBookWrite(openLibraryKey: key, title: book.title, author: book.author, year: book.year, pageCount: book.pageCount))
-                .select("id")
-                .single()
-                .execute()
-                .value
-            return inserted.id
-        } catch {
-            // someone else added it a moment ago
-            if let found = try await findCatalogBook(key: key) { return found }
-            throw error
-        }
-    }
-
-    private func findCatalogBook(key: String) async throws -> UUID? {
-        let rows: [IDRow] = try await supabase.from("books")
-            .select("id")
-            .eq("open_library_key", value: key)
-            .limit(1)
-            .execute()
-            .value
-        return rows.first?.id
-    }
-
     private func report(_ error: Error, _ step: String) {
         lastError = error.localizedDescription
         print("ShelfSync \(step) failed:", error)
@@ -375,11 +347,6 @@ private struct BookSnapshot {
         spineHex = book.spineHex
         addedAt = book.addedAt
         fingerprint = book.syncFingerprint
-    }
-
-    /// Until Open Library search lands, catalog books are keyed by title + author.
-    var catalogKey: String {
-        "local:" + "\(title)|\(author)".lowercased().trimmingCharacters(in: .whitespaces)
     }
 
     var patch: UserBookPatch {

@@ -26,6 +26,42 @@ private struct NameRecord: Decodable, Sendable {
     enum CodingKeys: String, CodingKey { case displayName = "display_name" }
 }
 
+/// The shared `books` catalog. It has no update policy, so it's find-then-insert.
+enum CatalogService {
+    /// Until Open Library search lands, catalog books are keyed by title + author.
+    static func key(title: String, author: String) -> String {
+        "local:" + "\(title)|\(author)".lowercased().trimmingCharacters(in: .whitespaces)
+    }
+
+    static func bookID(title: String, author: String, year: Int?, pageCount: Int) async throws -> UUID {
+        let key = key(title: title, author: author)
+        if let found = try await find(key: key) { return found }
+        do {
+            let inserted: IDRow = try await supabase.from("books")
+                .insert(CatalogBookWrite(openLibraryKey: key, title: title, author: author, year: year, pageCount: pageCount))
+                .select("id")
+                .single()
+                .execute()
+                .value
+            return inserted.id
+        } catch {
+            // someone else added it a moment ago
+            if let found = try await find(key: key) { return found }
+            throw error
+        }
+    }
+
+    private static func find(key: String) async throws -> UUID? {
+        let rows: [IDRow] = try await supabase.from("books")
+            .select("id")
+            .eq("open_library_key", value: key)
+            .limit(1)
+            .execute()
+            .value
+        return rows.first?.id
+    }
+}
+
 enum ClubService {
     /// The first club you belong to (one club per person for now).
     static func myClub(userID: UUID) async throws -> MembershipRecord? {

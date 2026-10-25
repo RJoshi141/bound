@@ -10,6 +10,8 @@ final class ClubMember {
     var status: String          // e.g. "Middlemarch · p. 200"
     var isHost: Bool
     var joinedAt: Date
+    /// Their profile id in Supabase.
+    var remoteID: UUID?
 
     init(name: String, colorHex: String, booksRead: Int, status: String, isHost: Bool = false, joinedAt: Date = .now) {
         self.name = name
@@ -72,6 +74,9 @@ final class PickOption {
     var author: String
     var votes: Int              // votes from everyone else
     var isMyVote: Bool
+    /// Row id in Supabase `pick_options`, and the catalog book it points at.
+    var remoteID: UUID?
+    var catalogID: UUID?
 
     init(title: String, author: String, votes: Int, isMyVote: Bool = false) {
         self.title = title
