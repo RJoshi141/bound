@@ -1,67 +1,146 @@
-# Bound
+<p align="center">
+  <img src="docs/images/app-icon.png" width="112" alt="Bound app icon, a red wax seal with a blackletter B">
+</p>
 
-A book club app for iOS. Your books sit on wooden shelves, your club leaves spoiler-safe notes in the margins, and the monthly meetup gets planned in the app instead of a group chat.
+<h1 align="center">Bound</h1>
 
-SwiftUI and SwiftData on the phone, Supabase behind it.
+<p align="center">
+  <em>Your book club, all in one place.</em><br>
+  Track what you read, share notes, plan the next meetup.
+</p>
 
-## What it does
+<p align="center">
+  <img src="https://img.shields.io/badge/iOS-26-221A14?style=flat-square&logo=apple&logoColor=F2EADB" alt="iOS 26">
+  <img src="https://img.shields.io/badge/Swift-SwiftUI%20%C2%B7%20SwiftData-8A2C22?style=flat-square&logo=swift&logoColor=F2EADB" alt="SwiftUI and SwiftData">
+  <img src="https://img.shields.io/badge/Supabase-Postgres%20%C2%B7%20Realtime-2F4A35?style=flat-square&logo=supabase&logoColor=F2EADB" alt="Supabase">
+  <img src="https://img.shields.io/badge/books-Open%20Library-B4572A?style=flat-square" alt="Open Library">
+</p>
 
-- **Shelves.** To read, Reading now and Finished, on oak planks. Tap a spine to lift it, tap anywhere else to put it back. Spines take their colour from the book's real cover.
-- **Add any book.** Search Open Library by title, author or ISBN, or scan the barcode on the back cover.
-- **Club notes.** Ratings and notes on each book, saved with the page you were on. Notes past your page fold away until you choose to read them. Edit or delete your own.
-- **Meetups.** The host puts books up for a vote and plans the meetup. Members RSVP and vote. Everything updates live on everyone's phone.
-- **Club ledger.** Every past meetup, with the club's average rating and yours.
-- **Portraits.** Pick one of six Victorian silhouettes and a colour.
-- **Sign-in.** Join with a club's invite code or start your own, using a code sent to your email. No passwords.
-- **The tear.** Leaving the start screen and joining a club rip the page away to reveal the app underneath.
+<p align="center">
+  <img src="docs/images/hero.png" width="520" alt="Bound on two iPhones: the start screen with an oil painting of books, and the shelves">
+</p>
+
+---
+
+Book clubs live in five places at once. The pick is in a group chat, progress is on Goodreads, notes are in a notes app, and the meetup address is buried somewhere in the thread. Nobody wants spoilers, and nobody knows what page anyone else is on.
+
+**Bound puts it in one place, and makes it feel like paper and ink.**
+
+<p align="center">
+  <img src="docs/images/screens.png" width="100%" alt="Four Bound screens: welcome, start a club, shelves with a book lifted, and a book page with club notes">
+</p>
+
+## Features
+
+**📚 Shelves that feel like shelves**
+To read, Reading now and Finished, standing on oak planks. Tap a spine to lift it off the shelf, tap anywhere else to put it back. Real covers come from Open Library, and each spine takes its colour from the cover's edge.
+
+**🔍 Add any book**
+Search by title, author or ISBN, or scan the barcode on the back cover.
+
+**✍️ Notes that don't spoil**
+Every note saves the page its author was on. Notes past your page fold away until you choose to read them. Ruled index cards, star ratings, a "discuss at meetup" tag, and you can edit or delete your own.
+
+**🎟️ The monthly meetup**
+A tear-off ticket with the book, date and place. RSVP Going, Maybe or Can't, and Going lands an ink stamp. The host puts books up for a vote, everyone votes, the host plans the meetup from the winner.
+
+**⚡ Live with your club**
+Notes, RSVPs and votes show up on everyone's phone in about a second.
+
+**📖 The club ledger**
+Every past meetup, like a library due-date card, with the club's average rating and yours.
+
+**🎩 Portraits, not initials**
+Pick one of six Victorian cut-paper silhouettes and a colour.
+
+**📜 The tear**
+Leaving the start screen and joining a club rip the page away to reveal the app underneath.
+
+## Design
+
+<table>
+  <tr>
+    <td align="center"><img src="https://placehold.co/56x56/F2EADB/F2EADB.png" width="56" alt=""><br><sub><b>Paper</b><br>#F2EADB</sub></td>
+    <td align="center"><img src="https://placehold.co/56x56/221A14/221A14.png" width="56" alt=""><br><sub><b>Ink</b><br>#221A14</sub></td>
+    <td align="center"><img src="https://placehold.co/56x56/2F4A35/2F4A35.png" width="56" alt=""><br><sub><b>Forest</b><br>#2F4A35</sub></td>
+    <td align="center"><img src="https://placehold.co/56x56/8A2C22/8A2C22.png" width="56" alt=""><br><sub><b>Oxblood</b><br>#8A2C22</sub></td>
+    <td align="center"><img src="https://placehold.co/56x56/B4572A/B4572A.png" width="56" alt=""><br><sub><b>Rust</b><br>#B4572A</sub></td>
+    <td align="center"><img src="https://placehold.co/56x56/C69A3A/C69A3A.png" width="56" alt=""><br><sub><b>Mustard</b><br>#C69A3A</sub></td>
+    <td align="center"><img src="https://placehold.co/56x56/A9813A/A9813A.png" width="56" alt=""><br><sub><b>Gilt</b><br>#A9813A</sub></td>
+  </tr>
+</table>
+
+| Role | Typeface |
+| --- | --- |
+| Masthead | UnifrakturMaguntia |
+| Headings, shelf names | Instrument Serif |
+| Buttons (letterpress small caps) | IM Fell English SC |
+| Body | Hanken Grotesk |
+| Labels | DM Mono |
+
+Square letterpress buttons, custom paper menus instead of system ones, and a wax seal for the app icon.
+
+<details>
+<summary><b>Early lo-fi wireframes</b></summary>
+<br>
+<img src="docs/images/wireframes.png" width="100%" alt="Lo-fi wireframes of the core flow: join, shelves, book, meetup, club">
+</details>
+
+## How it works
+
+- **Offline first.** Your shelves live in SwiftData on the phone and sync to Postgres about a second after each change. The app pulls the server copy when it opens.
+- **Live club data.** Members, meetups, RSVPs, votes and notes come from Supabase, and Realtime pushes changes as they happen.
+- **Permissions in the database.** Row-level security decides who sees what: clubmates can read your shelf, only hosts plan meetups, and recommendations are visible only to sender and recipient.
+- **Passwordless.** Join with a 6-character invite code; sign in with an 8-digit code sent to your email.
+- **Real books.** Open Library for search, ISBN lookup and covers. VisionKit reads the barcode and only accepts 978/979 codes, the ones printed on books.
 
 ## Stack
 
 | | |
 | --- | --- |
 | App | Swift, SwiftUI, SwiftData, iOS 26 |
-| Backend | Supabase: Postgres with row-level security, Auth (email codes), Realtime |
-| Books | Open Library search and covers |
-| Scanning | VisionKit (EAN-13, ISBN 978/979 only) |
-| Email | Custom SMTP through Resend |
+| Backend | Supabase: Postgres + row-level security, Auth, Realtime |
+| Books | Open Library |
+| Scanning | VisionKit |
+| Email | Resend (custom SMTP) |
 
-## How the data works
-
-- Your shelves live in SwiftData so the app works offline. Changes sync to Supabase about a second after you make them, and the app pulls the server copy when it opens.
-- Club data (members, meetups, RSVPs, votes, notes) comes from the server, and Realtime pushes changes as they happen.
-- Who can see what is decided in the database, not the app. You can read your clubmates' shelves, only hosts can plan meetups, and recommendations are visible only to their sender and recipient.
-
-## Running it
+## Run it yourself
 
 You need Xcode 26 and a free Supabase project.
 
-1. **Database.** In the Supabase SQL Editor, run each file in `supabase/migrations` in order (`0001`, `0002`, `0003`).
-2. **Sign-in.** Under Authentication → Sign In / Providers → Email, keep Email OTP on. The app expects **8-digit** codes; if your project sends a different length, change `JoinClubView.signInCodeLength`. Supabase's built-in email is heavily rate-limited, so set up custom SMTP (Authentication → Emails → SMTP) and add `{{ .Token }}` to the "Magic link or OTP" and "Confirm sign up" templates.
-3. **Keys.** Copy `Bound/Bound/Backend/Secrets.swift.example` to `Secrets.swift` and fill in your project URL and **anon public** key. `Secrets.swift` is git-ignored. Never put the `service_role` key in the app.
-4. **Run.** Open `Bound/Bound.xcodeproj` and run on an iPhone or the Simulator. Barcode scanning needs a real phone.
+1. **Database.** In the Supabase SQL Editor, run each file in [`supabase/migrations`](supabase/migrations) in order.
+2. **Sign-in.** Under Authentication → Sign In / Providers → Email, keep Email OTP on. The app expects **8-digit** codes (change `JoinClubView.signInCodeLength` if yours differ). Set up custom SMTP and add `{{ .Token }}` to the "Magic link or OTP" and "Confirm sign up" email templates.
+3. **Keys.** Copy `Bound/Bound/Backend/Secrets.swift.example` to `Secrets.swift` and add your project URL and **anon public** key. It's git-ignored. Never put the `service_role` key in the app.
+4. **Run.** Open `Bound/Bound.xcodeproj` and run. Barcode scanning needs a real iPhone.
 
-## Project layout
+<details>
+<summary><b>Project layout</b></summary>
 
 ```
 Bound/Bound/
   App/          root tabs and the tear transition
-  Backend/      Supabase client, sign-in, shelf/notes sync, club sync, Open Library, covers
-  Components/   buttons, avatars, silhouettes, paper menu and other shared views
+  Backend/      Supabase client, sign-in, sync, Open Library, covers
+  Components/   buttons, avatars, silhouettes, paper menu
   Features/     Onboarding, Shelves, Book, AddBook, Meetup, Club, Me
   Models/       SwiftData models
-  Theme/        colours, fonts, font registration
+  Theme/        colours and fonts
   Resources/    font files
 supabase/
   migrations/   SQL to set up the database
+docs/images/    README images
 ```
+</details>
 
-## Not built yet
+## Roadmap
 
-- Recommendations between members (the Club tab still shows sample ones)
-- Sign in with Apple
-- Push notifications and meetup reminders
-- Add to calendar, real map location for the meetup, Goodreads import
+- [ ] Recommendations between members
+- [ ] Sign in with Apple
+- [ ] TestFlight beta
+- [ ] Meetup reminders and add to calendar
+- [ ] Goodreads import
 
 ## Credits
 
-Book data and covers from [Open Library](https://openlibrary.org). Fonts from Google Fonts under the SIL Open Font License: UnifrakturMaguntia, Instrument Serif, IM Fell English SC, Hanken Grotesk and DM Mono.
+Book data and covers from [Open Library](https://openlibrary.org). Fonts from Google Fonts under the SIL Open Font License.
+
+<p align="center"><sub>Designed and built by <a href="https://rjoshi141.github.io/portfolio-v2/">Ritika Joshi</a></sub></p>
