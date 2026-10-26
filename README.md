@@ -32,43 +32,33 @@ Book clubs live in five places at once. The pick is in a group chat, progress is
 
 ## Features
 
-**📚 Shelves that feel like shelves**
+**Shelves that feel like shelves**
 To read, Reading now and Finished, standing on oak planks. Tap a spine to lift it off the shelf, tap anywhere else to put it back. Real covers come from Open Library, and each spine takes its colour from the cover's edge.
 
-**🔍 Add any book**
+**Add any book**
 Search by title, author or ISBN, or scan the barcode on the back cover.
 
-**✍️ Notes that don't spoil**
+**Notes that don't spoil**
 Every note saves the page its author was on. Notes past your page fold away until you choose to read them. Ruled index cards, star ratings, a "discuss at meetup" tag, and you can edit or delete your own.
 
-**🎟️ The monthly meetup**
+**The monthly meetup**
 A tear-off ticket with the book, date and place. RSVP Going, Maybe or Can't, and Going lands an ink stamp. The host puts books up for a vote, everyone votes, the host plans the meetup from the winner.
 
-**⚡ Live with your club**
+**Live with your club**
 Notes, RSVPs and votes show up on everyone's phone in about a second.
 
-**📖 The club ledger**
+**The club ledger**
 Every past meetup, like a library due-date card, with the club's average rating and yours.
 
-**🎩 Portraits, not initials**
+**Portraits, not initials**
 Pick one of six Victorian cut-paper silhouettes and a colour.
 
-**📜 The tear**
+**The tear**
 Leaving the start screen and joining a club rip the page away to reveal the app underneath.
 
 ## Design
 
-<table>
-  <tr>
-    <td align="center"><img src="https://placehold.co/56x56/F2EADB/F2EADB.png" width="56" alt=""><br><sub><b>Paper</b><br>#F2EADB</sub></td>
-    <td align="center"><img src="https://placehold.co/56x56/221A14/221A14.png" width="56" alt=""><br><sub><b>Ink</b><br>#221A14</sub></td>
-    <td align="center"><img src="https://placehold.co/56x56/2F4A35/2F4A35.png" width="56" alt=""><br><sub><b>Forest</b><br>#2F4A35</sub></td>
-    <td align="center"><img src="https://placehold.co/56x56/8A2C22/8A2C22.png" width="56" alt=""><br><sub><b>Oxblood</b><br>#8A2C22</sub></td>
-    <td align="center"><img src="https://placehold.co/56x56/B4572A/B4572A.png" width="56" alt=""><br><sub><b>Rust</b><br>#B4572A</sub></td>
-    <td align="center"><img src="https://placehold.co/56x56/C69A3A/C69A3A.png" width="56" alt=""><br><sub><b>Mustard</b><br>#C69A3A</sub></td>
-    <td align="center"><img src="https://placehold.co/56x56/A9813A/A9813A.png" width="56" alt=""><br><sub><b>Gilt</b><br>#A9813A</sub></td>
-  </tr>
-</table>
+<img src="docs/images/palette.png" width="100%" alt="Palette: Paper F2EADB, Ink 221A14, Forest 2F4A35, Oxblood 8A2C22, Rust B4572A, Mustard C69A3A, Gilt A9813A">
 
 | Role | Typeface |
 | --- | --- |
